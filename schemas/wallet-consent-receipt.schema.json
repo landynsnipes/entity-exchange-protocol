@@ -1,0 +1,89 @@
+{
+  "$ref": "#/definitions/wallet-consent-receipt",
+  "definitions": {
+    "wallet-consent-receipt": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "principalEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "requesterEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "approvedScopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "minItems": 1
+        },
+        "approvedOperations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "evaluate",
+              "personalize",
+              "draft_proposal"
+            ]
+          },
+          "minItems": 1
+        },
+        "requestNonce": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 256
+        },
+        "decision": {
+          "type": "string",
+          "const": "approved"
+        },
+        "containsRawContext": {
+          "type": "boolean",
+          "const": false
+        },
+        "approvedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "requestId",
+        "principalEntityId",
+        "requesterEntityId",
+        "purpose",
+        "approvedScopes",
+        "approvedOperations",
+        "requestNonce",
+        "decision",
+        "containsRawContext",
+        "approvedAt",
+        "expiresAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

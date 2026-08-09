@@ -1,0 +1,183 @@
+{
+  "$ref": "#/definitions/relationship-intent",
+  "definitions": {
+    "relationship-intent": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "principalEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "seek",
+            "offer",
+            "exchange"
+          ]
+        },
+        "desiredEntityKinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "const": "person"
+          },
+          "minItems": 1
+        },
+        "criteria": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "namespace": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "operator": {
+                "type": "string",
+                "enum": [
+                  "equals",
+                  "not_equals",
+                  "includes",
+                  "excludes",
+                  "at_least",
+                  "at_most",
+                  "between"
+                ]
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "importance": {
+                "type": "string",
+                "enum": [
+                  "required",
+                  "preferred"
+                ]
+              },
+              "disclosure": {
+                "type": "string",
+                "enum": [
+                  "private",
+                  "consented",
+                  "public",
+                  "sealed"
+                ],
+                "default": "private"
+              }
+            },
+            "required": [
+              "id",
+              "namespace",
+              "name",
+              "operator",
+              "value",
+              "importance"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "private",
+            "consented",
+            "public"
+          ],
+          "default": "private"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "relationshipPurpose": {
+          "type": "string",
+          "enum": [
+            "friendship",
+            "romantic_relationship",
+            "activity_partner",
+            "professional_peer"
+          ]
+        },
+        "identityDisclosure": {
+          "type": "string",
+          "enum": [
+            "after_mutual_interest",
+            "after_mutual_approval"
+          ]
+        },
+        "contactDisclosure": {
+          "type": "string",
+          "const": "after_mutual_approval"
+        }
+      },
+      "required": [
+        "id",
+        "principalEntityId",
+        "purpose",
+        "direction",
+        "desiredEntityKinds",
+        "createdAt",
+        "expiresAt",
+        "relationshipPurpose",
+        "identityDisclosure",
+        "contactDisclosure"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

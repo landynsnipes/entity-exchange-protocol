@@ -1,0 +1,65 @@
+{
+  "id": "70000000-0000-4000-8000-000000000001",
+  "entityId": "70000000-0000-4000-8000-000000000002",
+  "controllerEntityId": "70000000-0000-4000-8000-000000000002",
+  "modelVersion": "person-model-0.1.0",
+  "attributes": [
+    {
+      "id": "70000000-0000-4000-8000-000000000011",
+      "namespace": "career.capability",
+      "name": "enterpriseAiArchitecture",
+      "value": true,
+      "sensitivity": "internal",
+      "sourceKind": "principal_declared",
+      "confirmationState": "confirmed",
+      "evidenceReferences": ["evidence:portfolio:enterprise-ai"],
+      "observedAt": "2026-08-07T12:00:00.000Z"
+    },
+    {
+      "id": "70000000-0000-4000-8000-000000000012",
+      "namespace": "commerce.apparel",
+      "name": "visibleLogo",
+      "value": false,
+      "sensitivity": "internal",
+      "sourceKind": "agent_suggested",
+      "confirmationState": "confirmed",
+      "evidenceReferences": [],
+      "observedAt": "2026-08-07T12:00:00.000Z"
+    },
+    {
+      "id": "70000000-0000-4000-8000-000000000013",
+      "namespace": "relationship.goals",
+      "name": "wantsChildrenWithinYears",
+      "value": 5,
+      "sensitivity": "restricted",
+      "sourceKind": "principal_declared",
+      "confirmationState": "confirmed",
+      "evidenceReferences": [],
+      "observedAt": "2026-08-07T12:00:00.000Z"
+    },
+    {
+      "id": "70000000-0000-4000-8000-000000000014",
+      "namespace": "friendship.interest",
+      "name": "gym",
+      "value": true,
+      "sensitivity": "confidential",
+      "sourceKind": "principal_declared",
+      "confirmationState": "confirmed",
+      "evidenceReferences": [],
+      "observedAt": "2026-08-07T12:00:00.000Z"
+    },
+    {
+      "id": "70000000-0000-4000-8000-000000000015",
+      "namespace": "health.private",
+      "name": "exampleUnconfirmedInference",
+      "value": "must-not-project",
+      "sensitivity": "restricted",
+      "sourceKind": "agent_suggested",
+      "confirmationState": "unconfirmed",
+      "evidenceReferences": [],
+      "observedAt": "2026-08-07T12:00:00.000Z"
+    }
+  ],
+  "createdAt": "2026-08-07T12:00:00.000Z",
+  "updatedAt": "2026-08-07T12:00:00.000Z"
+}

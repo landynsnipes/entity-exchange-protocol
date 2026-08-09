@@ -1,0 +1,154 @@
+{
+  "$ref": "#/definitions/catalog-registration",
+  "definitions": {
+    "catalog-registration": {
+      "type": "object",
+      "properties": {
+        "catalogVersion": {
+          "type": "string",
+          "const": "0.1.0-draft.1"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "publisherEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recordKind": {
+          "type": "string",
+          "enum": [
+            "intent",
+            "offer",
+            "entity_view"
+          ]
+        },
+        "recordId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "profileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "entityKinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "minItems": 1
+        },
+        "discoveryTags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "maxItems": 50,
+          "default": []
+        },
+        "dereferenceEndpoint": {
+          "type": "string",
+          "format": "uri"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "active",
+            "withdrawn",
+            "expired"
+          ]
+        },
+        "provenanceReferences": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "default": []
+        },
+        "containsIdentity": {
+          "type": "boolean",
+          "const": false
+        },
+        "containsSealedValues": {
+          "type": "boolean",
+          "const": false
+        },
+        "publishedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "withdrawnAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "registrationSignature": {
+          "type": "object",
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "keyId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "signature": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 4096
+            },
+            "signedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "algorithm",
+            "keyId",
+            "signature",
+            "signedAt"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "catalogVersion",
+        "id",
+        "publisherEntityId",
+        "recordKind",
+        "recordId",
+        "profileId",
+        "purpose",
+        "entityKinds",
+        "dereferenceEndpoint",
+        "state",
+        "containsIdentity",
+        "containsSealedValues",
+        "publishedAt",
+        "expiresAt",
+        "registrationSignature"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

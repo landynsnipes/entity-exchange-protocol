@@ -1,0 +1,373 @@
+{
+  "$ref": "#/definitions/opportunity-card",
+  "definitions": {
+    "opportunity-card": {
+      "type": "object",
+      "properties": {
+        "protocolVersion": {
+          "type": "string",
+          "const": "0.1.0"
+        },
+        "profileVersion": {
+          "type": "string",
+          "const": "0.1.0"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "owner": {
+          "type": "object",
+          "properties": {
+            "subjectId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "organizationId": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "subjectId"
+          ],
+          "additionalProperties": false
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "defaultVisibility": {
+          "type": "string",
+          "enum": [
+            "private",
+            "consented",
+            "public"
+          ],
+          "default": "private"
+        },
+        "claims": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "identity",
+                  "capability",
+                  "evidence",
+                  "intent",
+                  "preference",
+                  "constraint",
+                  "credential"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "canonicalId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "visibility": {
+                "$ref": "#/definitions/opportunity-card/properties/defaultVisibility",
+                "default": "private"
+              },
+              "evidenceIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "default": []
+              },
+              "verification": {
+                "type": "object",
+                "properties": {
+                  "level": {
+                    "type": "string",
+                    "enum": [
+                      "self_asserted",
+                      "linked",
+                      "attested",
+                      "credential_verified",
+                      "demonstrated"
+                    ]
+                  },
+                  "verifier": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "verifiedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "level"
+                ],
+                "additionalProperties": false,
+                "default": {
+                  "level": "self_asserted"
+                }
+              },
+              "provenance": {
+                "type": "object",
+                "properties": {
+                  "sourceType": {
+                    "type": "string",
+                    "enum": [
+                      "manual",
+                      "github",
+                      "credential",
+                      "attestation",
+                      "system"
+                    ]
+                  },
+                  "sourceUri": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "observedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "importedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "sourceType",
+                  "observedAt"
+                ],
+                "additionalProperties": false
+              },
+              "issuedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "name",
+              "value",
+              "provenance",
+              "issuedAt"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "endpoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "profile",
+                  "agent",
+                  "evidence",
+                  "contact"
+                ]
+              },
+              "uri": {
+                "type": "string",
+                "format": "uri"
+              },
+              "authentication": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "oauth2",
+                  "signed_request"
+                ]
+              }
+            },
+            "required": [
+              "kind",
+              "uri",
+              "authentication"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "entityType": {
+          "type": "string",
+          "const": "opportunity"
+        },
+        "profile": {
+          "type": "object",
+          "properties": {
+            "organizationId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "outcomes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "minItems": 1
+            },
+            "requirements": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 160
+                  },
+                  "canonicalId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "importance": {
+                    "type": "string",
+                    "enum": [
+                      "required",
+                      "preferred"
+                    ]
+                  },
+                  "minimumVerification": {
+                    "$ref": "#/definitions/opportunity-card/properties/claims/items/properties/verification/properties/level",
+                    "default": "self_asserted"
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "importance"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "locationRegion": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "workMode": {
+              "type": "string",
+              "enum": [
+                "remote",
+                "hybrid",
+                "onsite"
+              ]
+            },
+            "compensationMin": {
+              "type": "number",
+              "minimum": 0
+            },
+            "compensationMax": {
+              "type": "number",
+              "minimum": 0
+            },
+            "currency": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3
+            }
+          },
+          "required": [
+            "organizationId",
+            "title",
+            "outcomes",
+            "requirements",
+            "workMode"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "profileVersion",
+        "id",
+        "owner",
+        "displayName",
+        "createdAt",
+        "updatedAt",
+        "entityType",
+        "profile"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

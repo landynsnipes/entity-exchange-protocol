@@ -1,0 +1,353 @@
+{
+  "$ref": "#/definitions/wallet-presentation",
+  "definitions": {
+    "wallet-presentation": {
+      "type": "object",
+      "properties": {
+        "profileVersion": {
+          "type": "string",
+          "const": "0.1.0-draft.1"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "requestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "audience": {
+          "type": "string",
+          "format": "uri"
+        },
+        "nonce": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 256
+        },
+        "view": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "sourceModelId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "entityId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "definitionId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "profileId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "purpose": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "attributes": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "sourceAttributeId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "namespace": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160
+                      },
+                      "disclosure": {
+                        "type": "string",
+                        "enum": [
+                          "consented",
+                          "public"
+                        ]
+                      },
+                      "value": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "evidenceReferences": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500
+                        },
+                        "default": []
+                      }
+                    },
+                    "required": [
+                      "sourceAttributeId",
+                      "namespace",
+                      "name",
+                      "disclosure",
+                      "value"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "sourceAttributeId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "namespace": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160
+                      },
+                      "disclosure": {
+                        "type": "string",
+                        "const": "sealed"
+                      },
+                      "valueCommitment": {
+                        "type": "string",
+                        "minLength": 16,
+                        "maxLength": 512
+                      },
+                      "evidenceReferences": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500
+                        },
+                        "default": []
+                      }
+                    },
+                    "required": [
+                      "sourceAttributeId",
+                      "namespace",
+                      "name",
+                      "disclosure",
+                      "valueCommitment"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "omittedNamespaces": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              }
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "expiresAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "id",
+            "sourceModelId",
+            "entityId",
+            "definitionId",
+            "profileId",
+            "purpose",
+            "attributes",
+            "omittedNamespaces",
+            "createdAt",
+            "expiresAt"
+          ],
+          "additionalProperties": false
+        },
+        "consent": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "requestId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "principalEntityId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "requesterEntityId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "purpose": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "approvedScopes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "minItems": 1
+            },
+            "approvedOperations": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "evaluate",
+                  "personalize",
+                  "draft_proposal"
+                ]
+              },
+              "minItems": 1
+            },
+            "requestNonce": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 256
+            },
+            "decision": {
+              "type": "string",
+              "const": "approved"
+            },
+            "containsRawContext": {
+              "type": "boolean",
+              "const": false
+            },
+            "approvedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "expiresAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "id",
+            "requestId",
+            "principalEntityId",
+            "requesterEntityId",
+            "purpose",
+            "approvedScopes",
+            "approvedOperations",
+            "requestNonce",
+            "decision",
+            "containsRawContext",
+            "approvedAt",
+            "expiresAt"
+          ],
+          "additionalProperties": false
+        },
+        "containsRawContext": {
+          "type": "boolean",
+          "const": false
+        },
+        "issuedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "signature": {
+          "type": "object",
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "Ed25519"
+            },
+            "keyId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300
+            },
+            "value": {
+              "type": "string",
+              "minLength": 43,
+              "maxLength": 512
+            }
+          },
+          "required": [
+            "algorithm",
+            "keyId",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "profileVersion",
+        "id",
+        "requestId",
+        "audience",
+        "nonce",
+        "view",
+        "consent",
+        "containsRawContext",
+        "issuedAt",
+        "expiresAt",
+        "signature"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

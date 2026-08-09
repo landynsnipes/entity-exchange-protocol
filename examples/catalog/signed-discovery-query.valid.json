@@ -1,0 +1,24 @@
+{
+  "id": "00000000-0000-4000-8000-000000000501",
+  "requesterEntityId": "00000000-0000-4000-8000-000000000502",
+  "authorizationId": "00000000-0000-4000-8000-000000000503",
+  "purpose": "Find minimal athletic shirts",
+  "acceptedProfileIds": ["exp.commerce"],
+  "desiredEntityKinds": ["product"],
+  "discoveryTags": ["style.minimal"],
+  "resultLimit": 20,
+  "federation": {
+    "allowed": true,
+    "remainingHops": 2,
+    "visitedCatalogIds": []
+  },
+  "createdAt": "2026-08-07T21:00:00.000Z",
+  "nonce": "discovery-nonce-00000002",
+  "expiresAt": "2026-08-07T21:05:00.000Z",
+  "requestSignature": {
+    "algorithm": "EdDSA",
+    "keyId": "did:web:principal.example#exp-key",
+    "signature": "conformance-signature-value",
+    "signedAt": "2026-08-07T21:00:00.000Z"
+  }
+}

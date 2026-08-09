@@ -1,0 +1,21 @@
+{
+  "profileId": "org.entity-exchange.profile.commerce",
+  "profileVersion": "0.1.0-draft.1",
+  "id": "62000000-0000-4000-8000-000000000001",
+  "providerEntityId": "62000000-0000-4000-8000-000000000002",
+  "productEntityId": "62000000-0000-4000-8000-000000000003",
+  "name": "Core performance tee",
+  "category": "apparel.shirt",
+  "attributes": {
+    "visibleLogo": false,
+    "fit": "athletic",
+    "comfort": "soft",
+    "colors": ["black", "navy", "white"]
+  },
+  "capabilityClaims": [],
+  "evidenceReferences": ["https://example.com/products/core-performance-tee/specification"],
+  "price": { "amount": 48, "currency": "USD" },
+  "availability": "available",
+  "visibility": "public",
+  "createdAt": "2026-08-07T12:00:00.000Z"
+}

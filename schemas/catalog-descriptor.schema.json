@@ -1,0 +1,124 @@
+{
+  "$ref": "#/definitions/catalog-descriptor",
+  "definitions": {
+    "catalog-descriptor": {
+      "type": "object",
+      "properties": {
+        "catalogVersion": {
+          "type": "string",
+          "const": "0.1.0-draft.1"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "operatorEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "endpoint": {
+          "type": "string",
+          "format": "uri"
+        },
+        "supportedProfileIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "minItems": 1
+        },
+        "authentication": {
+          "type": "string",
+          "enum": [
+            "none",
+            "oauth2",
+            "signed_request"
+          ]
+        },
+        "federation": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "maximumHops": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5
+            },
+            "peerCatalogIds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "default": []
+            }
+          },
+          "required": [
+            "enabled",
+            "maximumHops"
+          ],
+          "additionalProperties": false
+        },
+        "descriptorSignature": {
+          "type": "object",
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "keyId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "signature": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 4096
+            },
+            "signedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "algorithm",
+            "keyId",
+            "signature",
+            "signedAt"
+          ],
+          "additionalProperties": false
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "catalogVersion",
+        "id",
+        "operatorEntityId",
+        "endpoint",
+        "supportedProfileIds",
+        "authentication",
+        "federation",
+        "descriptorSignature",
+        "createdAt",
+        "updatedAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

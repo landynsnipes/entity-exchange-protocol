@@ -1,0 +1,18 @@
+{
+  "$ref": "#/definitions/federation-operation",
+  "definitions": {
+    "federation-operation": {
+      "type": "string",
+      "enum": [
+        "state:announce",
+        "catalog:discover",
+        "record:dereference",
+        "proposal:deliver",
+        "decision:deliver",
+        "release:deliver",
+        "invalidation:deliver"
+      ]
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

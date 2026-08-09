@@ -1,0 +1,64 @@
+{
+  "$ref": "#/definitions/connection-decision",
+  "definitions": {
+    "connection-decision": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "proposalId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "actorEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "actorSide": {
+          "type": "string",
+          "enum": [
+            "initiator",
+            "counterparty"
+          ]
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "rejected",
+            "withdrawn"
+          ]
+        },
+        "approvedDisclosureScopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "default": []
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "decidedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "proposalId",
+        "actorEntityId",
+        "actorSide",
+        "state",
+        "decidedAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

@@ -1,0 +1,93 @@
+{
+  "$ref": "#/definitions/entity-state-change",
+  "definitions": {
+    "entity-state-change": {
+      "type": "object",
+      "properties": {
+        "standingVersion": {
+          "type": "string",
+          "const": "0.1.0-draft.1"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sourceModelId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "previousModelVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "modelVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "changedNamespaces": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "minItems": 1,
+          "maxItems": 100
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "eventSignature": {
+          "type": "object",
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "keyId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "signature": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 4096
+            },
+            "signedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "algorithm",
+            "keyId",
+            "signature",
+            "signedAt"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "standingVersion",
+        "id",
+        "entityId",
+        "sourceModelId",
+        "modelVersion",
+        "changedNamespaces",
+        "occurredAt",
+        "eventSignature"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

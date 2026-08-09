@@ -1,0 +1,18 @@
+{
+  "standingVersion": "0.1.0-draft.1",
+  "id": "00000000-0000-4000-8000-000000002011",
+  "authorizationId": "00000000-0000-4000-8000-000000002012",
+  "recipientEntityId": "00000000-0000-4000-8000-000000002013",
+  "proposalId": "00000000-0000-4000-8000-000000002014",
+  "purpose": "Find a mutually suitable product",
+  "counterpartyKind": "product",
+  "counterpartyEntityId": "00000000-0000-4000-8000-000000002015",
+  "scoreBand": "strong",
+  "confidence": 1,
+  "summary": "A reciprocal, purpose-specific match is available for your review.",
+  "state": "active",
+  "containsIdentity": false,
+  "containsSealedValues": false,
+  "createdAt": "2026-08-07T22:01:00.000Z",
+  "expiresAt": "2026-09-07T22:01:00.000Z"
+}

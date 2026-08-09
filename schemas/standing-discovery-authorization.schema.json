@@ -1,0 +1,94 @@
+{
+  "$ref": "#/definitions/standing-discovery-authorization",
+  "definitions": {
+    "standing-discovery-authorization": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "principalEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "viewDefinitionId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "cadence": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "daily",
+            "weekly",
+            "monthly"
+          ]
+        },
+        "allowedOperations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "project_view",
+              "discover",
+              "evaluate",
+              "notify"
+            ]
+          },
+          "minItems": 1
+        },
+        "prohibitedOperations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "disclose_identity",
+              "contact",
+              "apply",
+              "purchase",
+              "book"
+            ]
+          },
+          "minItems": 1
+        },
+        "maximumResultsPerRun": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "grantedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "revokedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "principalEntityId",
+        "viewDefinitionId",
+        "purpose",
+        "cadence",
+        "allowedOperations",
+        "prohibitedOperations",
+        "maximumResultsPerRun",
+        "grantedAt",
+        "expiresAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

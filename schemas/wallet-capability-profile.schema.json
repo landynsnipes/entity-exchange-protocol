@@ -1,0 +1,58 @@
+{
+  "$ref": "#/definitions/wallet-capability-profile",
+  "definitions": {
+    "wallet-capability-profile": {
+      "type": "object",
+      "properties": {
+        "profileVersion": {
+          "type": "string",
+          "const": "0.1.0-draft.1"
+        },
+        "runtime": {
+          "type": "string",
+          "enum": [
+            "full_node",
+            "desktop_wallet",
+            "mobile_wallet",
+            "browser_wallet",
+            "delegated_client"
+          ]
+        },
+        "outboundHttps": {
+          "type": "boolean"
+        },
+        "inboundFederation": {
+          "type": "boolean"
+        },
+        "durableBackgroundDelivery": {
+          "type": "boolean"
+        },
+        "secureKeyStorage": {
+          "type": "boolean"
+        },
+        "localApprovalUi": {
+          "type": "boolean"
+        },
+        "pushWakeup": {
+          "type": "boolean"
+        },
+        "delegatedStandingMode": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "profileVersion",
+        "runtime",
+        "outboundHttps",
+        "inboundFederation",
+        "durableBackgroundDelivery",
+        "secureKeyStorage",
+        "localApprovalUi",
+        "pushWakeup",
+        "delegatedStandingMode"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

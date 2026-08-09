@@ -1,0 +1,31 @@
+{
+  "id": "61000000-0000-4000-8000-000000000001",
+  "principalEntityId": "61000000-0000-4000-8000-000000000002",
+  "purpose": "Find clean, comfortable athletic-fit shirts without visible logos",
+  "direction": "seek",
+  "desiredEntityKinds": ["product"],
+  "commercePurpose": "product_discovery",
+  "criteria": [
+    {
+      "id": "61000000-0000-4000-8000-000000000003",
+      "namespace": "commerce.apparel",
+      "name": "visibleLogo",
+      "operator": "equals",
+      "value": false,
+      "importance": "required",
+      "disclosure": "consented"
+    },
+    {
+      "id": "61000000-0000-4000-8000-000000000004",
+      "namespace": "commerce.apparel",
+      "name": "fit",
+      "operator": "includes",
+      "value": ["athletic"],
+      "importance": "preferred",
+      "disclosure": "consented"
+    }
+  ],
+  "visibility": "private",
+  "createdAt": "2026-08-07T12:00:00.000Z",
+  "expiresAt": "2026-08-08T12:00:00.000Z"
+}

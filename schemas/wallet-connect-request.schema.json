@@ -1,0 +1,126 @@
+{
+  "$ref": "#/definitions/wallet-connect-request",
+  "definitions": {
+    "wallet-connect-request": {
+      "type": "object",
+      "properties": {
+        "profileVersion": {
+          "type": "string",
+          "const": "0.1.0-draft.1"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "requesterEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "requesterName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "requesterOrigin": {
+          "type": "string",
+          "format": "uri"
+        },
+        "callbackUri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "requestedScopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "minItems": 1
+        },
+        "requestedOperations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "evaluate",
+              "personalize",
+              "draft_proposal"
+            ]
+          },
+          "minItems": 1
+        },
+        "prohibitedReuse": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "minItems": 1
+        },
+        "nonce": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 256
+        },
+        "issuedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "signature": {
+          "type": "object",
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "Ed25519"
+            },
+            "keyId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300
+            },
+            "value": {
+              "type": "string",
+              "minLength": 43,
+              "maxLength": 512
+            }
+          },
+          "required": [
+            "algorithm",
+            "keyId",
+            "value"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "profileVersion",
+        "id",
+        "requesterEntityId",
+        "requesterName",
+        "requesterOrigin",
+        "callbackUri",
+        "purpose",
+        "requestedScopes",
+        "requestedOperations",
+        "prohibitedReuse",
+        "nonce",
+        "issuedAt",
+        "expiresAt",
+        "signature"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

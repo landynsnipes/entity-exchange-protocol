@@ -1,0 +1,70 @@
+{
+  "$ref": "#/definitions/node-authority-grant",
+  "definitions": {
+    "node-authority-grant": {
+      "type": "object",
+      "properties": {
+        "grantId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "issuerEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "subjectNodeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "state:announce",
+              "catalog:discover",
+              "record:dereference",
+              "proposal:deliver",
+              "decision:deliver",
+              "release:deliver",
+              "invalidation:deliver"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 7
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "active",
+            "revoked"
+          ]
+        },
+        "validFrom": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "revokedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "grantId",
+        "issuerEntityId",
+        "subjectNodeId",
+        "operations",
+        "state",
+        "validFrom",
+        "expiresAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

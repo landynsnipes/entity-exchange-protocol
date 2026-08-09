@@ -1,0 +1,25 @@
+{
+  "profileVersion": "exp-wallet-platform-conformance-0.1.0-draft.1",
+  "requiredCases": [
+    "canonical-signature-valid",
+    "tampered-signature-rejected",
+    "unpinned-requester-rejected",
+    "external-http-rejected",
+    "request-timeout-bounded",
+    "callback-origin-mismatch-rejected",
+    "approval-scope-escalation-rejected",
+    "unapproved-attribute-rejected",
+    "raw-context-rejected",
+    "expired-consent-rejected",
+    "presentation-replay-rejected",
+    "private-key-non-exportable-or-platform-protected"
+  ],
+  "claimRequirements": {
+    "implementationName": "required",
+    "implementationVersion": "required",
+    "runtimeAndOsVersion": "required",
+    "supportedCapabilityProfile": "required",
+    "testReportHash": "required",
+    "independentReviewer": "required-for-certified-claim"
+  }
+}

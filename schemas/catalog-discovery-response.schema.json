@@ -1,0 +1,183 @@
+{
+  "$ref": "#/definitions/catalog-discovery-response",
+  "definitions": {
+    "catalog-discovery-response": {
+      "type": "object",
+      "properties": {
+        "queryId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "decisionTraceId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "servedByCatalogId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "registrationId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "sourceCatalogId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "recordKind": {
+                "type": "string",
+                "enum": [
+                  "intent",
+                  "offer",
+                  "entity_view"
+                ]
+              },
+              "recordId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "profileId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "purpose": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "entityKinds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "minItems": 1
+              },
+              "discoveryTags": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "maxItems": 50,
+                "default": []
+              },
+              "dereferenceEndpoint": {
+                "type": "string",
+                "format": "uri"
+              },
+              "provenanceReferences": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "default": []
+              },
+              "containsIdentity": {
+                "type": "boolean",
+                "const": false
+              },
+              "containsSealedValues": {
+                "type": "boolean",
+                "const": false
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "registrationId",
+              "sourceCatalogId",
+              "recordKind",
+              "recordId",
+              "profileId",
+              "purpose",
+              "entityKinds",
+              "dereferenceEndpoint",
+              "containsIdentity",
+              "containsSealedValues",
+              "expiresAt"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 100
+        },
+        "consultedCatalogIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "maxItems": 50
+        },
+        "nextCursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "partial": {
+          "type": "boolean"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "catalogId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "code": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              }
+            },
+            "required": [
+              "catalogId",
+              "code",
+              "message"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "queryId",
+        "decisionTraceId",
+        "servedByCatalogId",
+        "candidates",
+        "consultedCatalogIds",
+        "partial",
+        "createdAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

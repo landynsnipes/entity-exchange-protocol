@@ -1,0 +1,67 @@
+{
+  "$ref": "#/definitions/node-verification-key",
+  "definitions": {
+    "node-verification-key": {
+      "type": "object",
+      "properties": {
+        "keyId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "algorithm": {
+          "type": "string",
+          "const": "Ed25519"
+        },
+        "publicKeyPem": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 4096
+        },
+        "purposes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "transport",
+              "catalog",
+              "state_event"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 3
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "active",
+            "revoked"
+          ]
+        },
+        "validFrom": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "revokedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "keyId",
+        "algorithm",
+        "publicKeyPem",
+        "purposes",
+        "state",
+        "validFrom",
+        "expiresAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

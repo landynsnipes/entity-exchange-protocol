@@ -1,0 +1,220 @@
+{
+  "$ref": "#/definitions/product-offer",
+  "definitions": {
+    "product-offer": {
+      "type": "object",
+      "properties": {
+        "profileId": {
+          "type": "string",
+          "const": "org.entity-exchange.profile.commerce"
+        },
+        "profileVersion": {
+          "type": "string",
+          "const": "0.1.0-draft.1"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "providerEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "productEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          }
+        },
+        "capabilityClaims": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "namespace": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "operator": {
+                "type": "string",
+                "enum": [
+                  "equals",
+                  "not_equals",
+                  "includes",
+                  "excludes",
+                  "at_least",
+                  "at_most",
+                  "between"
+                ]
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "importance": {
+                "type": "string",
+                "enum": [
+                  "required",
+                  "preferred"
+                ]
+              },
+              "disclosure": {
+                "type": "string",
+                "enum": [
+                  "private",
+                  "consented",
+                  "public",
+                  "sealed"
+                ],
+                "default": "private"
+              }
+            },
+            "required": [
+              "id",
+              "namespace",
+              "name",
+              "operator",
+              "value",
+              "importance"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "evidenceReferences": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "default": []
+        },
+        "price": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "number",
+              "minimum": 0
+            },
+            "currency": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3
+            }
+          },
+          "required": [
+            "amount",
+            "currency"
+          ],
+          "additionalProperties": false
+        },
+        "availability": {
+          "type": "string",
+          "enum": [
+            "available",
+            "limited",
+            "unavailable"
+          ]
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "consented",
+            "public"
+          ],
+          "default": "public"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "profileId",
+        "profileVersion",
+        "id",
+        "providerEntityId",
+        "productEntityId",
+        "name",
+        "category",
+        "attributes",
+        "availability",
+        "createdAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

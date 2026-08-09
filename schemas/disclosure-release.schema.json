@@ -1,0 +1,70 @@
+{
+  "$ref": "#/definitions/disclosure-release",
+  "definitions": {
+    "disclosure-release": {
+      "type": "object",
+      "properties": {
+        "standingVersion": {
+          "type": "string",
+          "const": "0.1.0-draft.1"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "proposalId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "initiatorEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "counterpartyEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "releasedScopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "minItems": 1
+        },
+        "decisionIds": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "string",
+              "format": "uuid"
+            }
+          ]
+        },
+        "releasedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "standingVersion",
+        "id",
+        "proposalId",
+        "initiatorEntityId",
+        "counterpartyEntityId",
+        "releasedScopes",
+        "decisionIds",
+        "releasedAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

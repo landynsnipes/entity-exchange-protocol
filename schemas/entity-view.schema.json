@@ -1,0 +1,193 @@
+{
+  "$ref": "#/definitions/entity-view",
+  "definitions": {
+    "entity-view": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sourceModelId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "definitionId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "profileId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "sourceAttributeId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "namespace": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 160
+                  },
+                  "disclosure": {
+                    "type": "string",
+                    "enum": [
+                      "consented",
+                      "public"
+                    ]
+                  },
+                  "value": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "evidenceReferences": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "default": []
+                  }
+                },
+                "required": [
+                  "sourceAttributeId",
+                  "namespace",
+                  "name",
+                  "disclosure",
+                  "value"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "sourceAttributeId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "namespace": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 160
+                  },
+                  "disclosure": {
+                    "type": "string",
+                    "const": "sealed"
+                  },
+                  "valueCommitment": {
+                    "type": "string",
+                    "minLength": 16,
+                    "maxLength": 512
+                  },
+                  "evidenceReferences": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "default": []
+                  }
+                },
+                "required": [
+                  "sourceAttributeId",
+                  "namespace",
+                  "name",
+                  "disclosure",
+                  "valueCommitment"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "omittedNamespaces": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "sourceModelId",
+        "entityId",
+        "definitionId",
+        "profileId",
+        "purpose",
+        "attributes",
+        "omittedNamespaces",
+        "createdAt",
+        "expiresAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

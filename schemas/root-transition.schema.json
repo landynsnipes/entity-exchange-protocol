@@ -1,0 +1,115 @@
+{
+  "$ref": "#/definitions/root-transition",
+  "definitions": {
+    "root-transition": {
+      "type": "object",
+      "properties": {
+        "transitionId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "nodeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "sequence": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "previousRootKeyId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "nextRootKeyId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "nextRootPublicKeyPem": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 4096
+        },
+        "effectiveAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "previousRootSignature": {
+          "type": "object",
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "EdDSA"
+            },
+            "keyId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "signature": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 4096
+            },
+            "signedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "algorithm",
+            "keyId",
+            "signature",
+            "signedAt"
+          ],
+          "additionalProperties": false
+        },
+        "nextRootSignature": {
+          "type": "object",
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "EdDSA"
+            },
+            "keyId": {
+              "$ref": "#/definitions/root-transition/properties/previousRootSignature/properties/keyId"
+            },
+            "signature": {
+              "$ref": "#/definitions/root-transition/properties/previousRootSignature/properties/signature"
+            },
+            "signedAt": {
+              "$ref": "#/definitions/root-transition/properties/previousRootSignature/properties/signedAt"
+            }
+          },
+          "required": [
+            "algorithm",
+            "keyId",
+            "signature",
+            "signedAt"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "transitionId",
+        "nodeId",
+        "sequence",
+        "previousRootKeyId",
+        "nextRootKeyId",
+        "nextRootPublicKeyPem",
+        "effectiveAt",
+        "expiresAt",
+        "previousRootSignature",
+        "nextRootSignature"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

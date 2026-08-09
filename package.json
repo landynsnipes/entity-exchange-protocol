@@ -1,0 +1,40 @@
+{
+  "name": "@exp/protocol",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "./foundation": { "types": "./dist/foundation.d.ts", "default": "./dist/foundation.js" },
+    "./entity-model": { "types": "./dist/entity-model.d.ts", "default": "./dist/entity-model.js" },
+    "./catalog": { "types": "./dist/catalog.d.ts", "default": "./dist/catalog.js" },
+    "./standing": { "types": "./dist/standing.d.ts", "default": "./dist/standing.js" },
+    "./trust": { "types": "./dist/trust.d.ts", "default": "./dist/trust.js" },
+    "./wallet": { "types": "./dist/wallet.d.ts", "default": "./dist/wallet.js" },
+    "./wallet-sdk": { "types": "./dist/wallet-sdk.d.ts", "default": "./dist/wallet-sdk.js" },
+    "./platform-browser": { "types": "./dist/platform-browser.d.ts", "default": "./dist/platform-browser.js" },
+    "./profiles/commerce": { "types": "./dist/commerce.d.ts", "default": "./dist/commerce.js" },
+    "./profiles/relationship": { "types": "./dist/relationship.d.ts", "default": "./dist/relationship.js" }
+  },
+  "files": ["dist", "generated", "examples", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && esbuild dist/platform-browser.js --bundle --format=esm --platform=browser --outfile=dist/platform-browser.bundle.js",
+    "conformance": "node conformance/run.mjs python3 implementations/python/exp_adapter.py --schemas schemas",
+    "generate:schemas": "tsx src/generate-schemas.ts",
+    "lint": "eslint src --max-warnings 0",
+    "test": "vitest run",
+    "test:python": "python3 -m unittest discover -s implementations/python/tests",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.25.76",
+    "zod-to-json-schema": "^3.24.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.11",
+    "tsx": "^4.20.6",
+    "esbuild": "^0.28.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

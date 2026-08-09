@@ -1,0 +1,54 @@
+{
+  "$ref": "#/definitions/relationship-match-explanation",
+  "definitions": {
+    "relationship-match-explanation": {
+      "type": "object",
+      "properties": {
+        "evaluationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "sharedPublicThemes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "default": []
+        },
+        "sealedCompatibilityCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sealedConflictCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "missingInformationCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "containsSealedValues": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "required": [
+        "evaluationId",
+        "summary",
+        "sealedCompatibilityCount",
+        "sealedConflictCount",
+        "missingInformationCount",
+        "containsSealedValues"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

@@ -1,0 +1,289 @@
+{
+  "$ref": "#/definitions/discovery-request",
+  "definitions": {
+    "discovery-request": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "projection": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "intent": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "principalEntityId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "purpose": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "direction": {
+                  "type": "string",
+                  "enum": [
+                    "seek",
+                    "offer",
+                    "exchange"
+                  ]
+                },
+                "desiredEntityKinds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "minItems": 1
+                },
+                "criteria": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "namespace": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160
+                      },
+                      "operator": {
+                        "type": "string",
+                        "enum": [
+                          "equals",
+                          "not_equals",
+                          "includes",
+                          "excludes",
+                          "at_least",
+                          "at_most",
+                          "between"
+                        ]
+                      },
+                      "value": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "importance": {
+                        "type": "string",
+                        "enum": [
+                          "required",
+                          "preferred"
+                        ]
+                      },
+                      "disclosure": {
+                        "type": "string",
+                        "enum": [
+                          "private",
+                          "consented",
+                          "public",
+                          "sealed"
+                        ],
+                        "default": "private"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "namespace",
+                      "name",
+                      "operator",
+                      "value",
+                      "importance"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "default": []
+                },
+                "visibility": {
+                  "type": "string",
+                  "enum": [
+                    "private",
+                    "consented",
+                    "public"
+                  ],
+                  "default": "private"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "principalEntityId",
+                "purpose",
+                "direction",
+                "desiredEntityKinds",
+                "createdAt",
+                "expiresAt"
+              ],
+              "additionalProperties": false
+            },
+            "authorizationId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "generatedByAgentId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "derivationMethod": {
+              "type": "string",
+              "enum": [
+                "user_authored",
+                "agent_assisted",
+                "system_mapped"
+              ]
+            },
+            "sourceContextClass": {
+              "type": "string",
+              "enum": [
+                "user_instruction",
+                "private_agent_memory",
+                "organization_policy",
+                "imported_record"
+              ]
+            },
+            "disclosedAttributes": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "default": {}
+            },
+            "omittedSensitiveCategories": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "default": []
+            },
+            "containsRawConversation": {
+              "type": "boolean",
+              "const": false
+            },
+            "reviewedByPrincipalAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "id",
+            "intent",
+            "authorizationId",
+            "generatedByAgentId",
+            "derivationMethod",
+            "sourceContextClass",
+            "containsRawConversation",
+            "createdAt"
+          ],
+          "additionalProperties": false
+        },
+        "requestedResultLimit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        },
+        "acceptedProfileIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "minItems": 1
+        },
+        "requesterEndpoint": {
+          "type": "string",
+          "format": "uri"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "projection",
+        "acceptedProfileIds",
+        "createdAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

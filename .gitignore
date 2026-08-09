@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+package-lock.json
+*.tsbuildinfo
+__pycache__/
+*.py[cod]
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example

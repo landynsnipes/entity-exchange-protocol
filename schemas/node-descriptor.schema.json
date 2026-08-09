@@ -1,0 +1,327 @@
+{
+  "$ref": "#/definitions/node-descriptor",
+  "definitions": {
+    "node-descriptor": {
+      "type": "object",
+      "properties": {
+        "trustVersion": {
+          "type": "string",
+          "const": "0.1.0-draft.2"
+        },
+        "nodeId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "operatorEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "endpoint": {
+          "type": "string",
+          "format": "uri"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "keys": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "keyId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "algorithm": {
+                "type": "string",
+                "const": "Ed25519"
+              },
+              "publicKeyPem": {
+                "type": "string",
+                "minLength": 64,
+                "maxLength": 4096
+              },
+              "purposes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "transport",
+                    "catalog",
+                    "state_event"
+                  ]
+                },
+                "minItems": 1,
+                "maxItems": 3
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "revoked"
+                ]
+              },
+              "validFrom": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "revokedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "keyId",
+              "algorithm",
+              "publicKeyPem",
+              "purposes",
+              "state",
+              "validFrom",
+              "expiresAt"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 20
+        },
+        "authorityGrants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "grantId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "issuerEntityId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "subjectNodeId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "operations": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "state:announce",
+                    "catalog:discover",
+                    "record:dereference",
+                    "proposal:deliver",
+                    "decision:deliver",
+                    "release:deliver",
+                    "invalidation:deliver"
+                  ]
+                },
+                "minItems": 1,
+                "maxItems": 7
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "revoked"
+                ]
+              },
+              "validFrom": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "revokedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "grantId",
+              "issuerEntityId",
+              "subjectNodeId",
+              "operations",
+              "state",
+              "validFrom",
+              "expiresAt"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 20
+        },
+        "rootTransition": {
+          "type": "object",
+          "properties": {
+            "transitionId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nodeId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "sequence": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "previousRootKeyId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "nextRootKeyId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "nextRootPublicKeyPem": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 4096
+            },
+            "effectiveAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "expiresAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "previousRootSignature": {
+              "type": "object",
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "const": "EdDSA"
+                },
+                "keyId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "signature": {
+                  "type": "string",
+                  "minLength": 16,
+                  "maxLength": 4096
+                },
+                "signedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "algorithm",
+                "keyId",
+                "signature",
+                "signedAt"
+              ],
+              "additionalProperties": false
+            },
+            "nextRootSignature": {
+              "type": "object",
+              "properties": {
+                "algorithm": {
+                  "type": "string",
+                  "const": "EdDSA"
+                },
+                "keyId": {
+                  "$ref": "#/definitions/node-descriptor/properties/rootTransition/properties/previousRootSignature/properties/keyId"
+                },
+                "signature": {
+                  "$ref": "#/definitions/node-descriptor/properties/rootTransition/properties/previousRootSignature/properties/signature"
+                },
+                "signedAt": {
+                  "$ref": "#/definitions/node-descriptor/properties/rootTransition/properties/previousRootSignature/properties/signedAt"
+                }
+              },
+              "required": [
+                "algorithm",
+                "keyId",
+                "signature",
+                "signedAt"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "transitionId",
+            "nodeId",
+            "sequence",
+            "previousRootKeyId",
+            "nextRootKeyId",
+            "nextRootPublicKeyPem",
+            "effectiveAt",
+            "expiresAt",
+            "previousRootSignature",
+            "nextRootSignature"
+          ],
+          "additionalProperties": false
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "descriptorSignature": {
+          "type": "object",
+          "properties": {
+            "algorithm": {
+              "type": "string",
+              "const": "EdDSA"
+            },
+            "keyId": {
+              "$ref": "#/definitions/node-descriptor/properties/rootTransition/properties/previousRootSignature/properties/keyId"
+            },
+            "signature": {
+              "$ref": "#/definitions/node-descriptor/properties/rootTransition/properties/previousRootSignature/properties/signature"
+            },
+            "signedAt": {
+              "$ref": "#/definitions/node-descriptor/properties/rootTransition/properties/previousRootSignature/properties/signedAt"
+            }
+          },
+          "required": [
+            "algorithm",
+            "keyId",
+            "signature",
+            "signedAt"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "trustVersion",
+        "nodeId",
+        "operatorEntityId",
+        "endpoint",
+        "sequence",
+        "keys",
+        "authorityGrants",
+        "createdAt",
+        "updatedAt",
+        "expiresAt",
+        "descriptorSignature"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

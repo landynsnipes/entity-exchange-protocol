@@ -1,0 +1,24 @@
+{
+  "catalogVersion": "0.1.0-draft.1",
+  "id": "00000000-0000-4000-8000-000000000301",
+  "publisherEntityId": "00000000-0000-4000-8000-000000000302",
+  "recordKind": "entity_view",
+  "recordId": "00000000-0000-4000-8000-000000000303",
+  "profileId": "exp.commerce",
+  "purpose": "Find a product matching an approved shopping intent",
+  "entityKinds": ["product"],
+  "discoveryTags": ["apparel.shirt", "style.minimal"],
+  "dereferenceEndpoint": "https://provider.example/exp/views/303",
+  "state": "active",
+  "provenanceReferences": ["urn:exp:provider-catalog:303"],
+  "containsIdentity": false,
+  "containsSealedValues": false,
+  "publishedAt": "2026-08-07T20:00:00.000Z",
+  "expiresAt": "2026-08-08T20:00:00.000Z",
+  "registrationSignature": {
+    "algorithm": "EdDSA",
+    "keyId": "did:web:provider.example#exp-key",
+    "signature": "conformance-signature-value",
+    "signedAt": "2026-08-07T20:00:00.000Z"
+  }
+}

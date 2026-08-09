@@ -1,0 +1,20 @@
+{
+  "id": "63000000-0000-4000-8000-000000000001",
+  "authorizationId": "63000000-0000-4000-8000-000000000002",
+  "generatedByAgentId": "63000000-0000-4000-8000-000000000003",
+  "derivationMethod": "agent_assisted",
+  "sourceContextClass": "private_agent_memory",
+  "containsRawConversation": true,
+  "createdAt": "2026-08-07T12:00:00.000Z",
+  "intent": {
+    "id": "63000000-0000-4000-8000-000000000004",
+    "principalEntityId": "63000000-0000-4000-8000-000000000005",
+    "purpose": "Find shirts",
+    "direction": "seek",
+    "desiredEntityKinds": ["product"],
+    "criteria": [],
+    "visibility": "private",
+    "createdAt": "2026-08-07T12:00:00.000Z",
+    "expiresAt": "2026-08-08T12:00:00.000Z"
+  }
+}

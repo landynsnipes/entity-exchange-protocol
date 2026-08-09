@@ -1,0 +1,95 @@
+{
+  "$ref": "#/definitions/agent-authorization",
+  "definitions": {
+    "agent-authorization": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "principalEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "agentEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "purposes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "minItems": 1
+        },
+        "allowedOperations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "derive_intent",
+              "discover",
+              "evaluate",
+              "draft_proposal"
+            ]
+          },
+          "minItems": 1
+        },
+        "allowedDisclosureScopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "default": []
+        },
+        "prohibitedDisclosureScopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "default": []
+        },
+        "requiresHumanApprovalForDisclosure": {
+          "type": "boolean",
+          "const": true
+        },
+        "requiresHumanApprovalForConnection": {
+          "type": "boolean",
+          "const": true
+        },
+        "grantedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "revokedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "principalEntityId",
+        "agentEntityId",
+        "purposes",
+        "allowedOperations",
+        "requiresHumanApprovalForDisclosure",
+        "requiresHumanApprovalForConnection",
+        "grantedAt",
+        "expiresAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

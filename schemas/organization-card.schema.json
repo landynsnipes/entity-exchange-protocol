@@ -1,0 +1,292 @@
+{
+  "$ref": "#/definitions/organization-card",
+  "definitions": {
+    "organization-card": {
+      "type": "object",
+      "properties": {
+        "protocolVersion": {
+          "type": "string",
+          "const": "0.1.0"
+        },
+        "profileVersion": {
+          "type": "string",
+          "const": "0.1.0"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "owner": {
+          "type": "object",
+          "properties": {
+            "subjectId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "organizationId": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "subjectId"
+          ],
+          "additionalProperties": false
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "defaultVisibility": {
+          "type": "string",
+          "enum": [
+            "private",
+            "consented",
+            "public"
+          ],
+          "default": "private"
+        },
+        "claims": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "identity",
+                  "capability",
+                  "evidence",
+                  "intent",
+                  "preference",
+                  "constraint",
+                  "credential"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "canonicalId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              },
+              "visibility": {
+                "$ref": "#/definitions/organization-card/properties/defaultVisibility",
+                "default": "private"
+              },
+              "evidenceIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "default": []
+              },
+              "verification": {
+                "type": "object",
+                "properties": {
+                  "level": {
+                    "type": "string",
+                    "enum": [
+                      "self_asserted",
+                      "linked",
+                      "attested",
+                      "credential_verified",
+                      "demonstrated"
+                    ]
+                  },
+                  "verifier": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "verifiedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "level"
+                ],
+                "additionalProperties": false,
+                "default": {
+                  "level": "self_asserted"
+                }
+              },
+              "provenance": {
+                "type": "object",
+                "properties": {
+                  "sourceType": {
+                    "type": "string",
+                    "enum": [
+                      "manual",
+                      "github",
+                      "credential",
+                      "attestation",
+                      "system"
+                    ]
+                  },
+                  "sourceUri": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "sourceId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "observedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "importedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "sourceType",
+                  "observedAt"
+                ],
+                "additionalProperties": false
+              },
+              "issuedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "name",
+              "value",
+              "provenance",
+              "issuedAt"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "endpoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "profile",
+                  "agent",
+                  "evidence",
+                  "contact"
+                ]
+              },
+              "uri": {
+                "type": "string",
+                "format": "uri"
+              },
+              "authentication": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "oauth2",
+                  "signed_request"
+                ]
+              }
+            },
+            "required": [
+              "kind",
+              "uri",
+              "authentication"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "entityType": {
+          "type": "string",
+          "const": "organization"
+        },
+        "profile": {
+          "type": "object",
+          "properties": {
+            "domains": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 253
+              },
+              "default": []
+            },
+            "contactEmail": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "profileVersion",
+        "id",
+        "owner",
+        "displayName",
+        "createdAt",
+        "updatedAt",
+        "entityType",
+        "profile"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

@@ -1,0 +1,72 @@
+{
+  "$ref": "#/definitions/sealed-match-material",
+  "definitions": {
+    "sealed-match-material": {
+      "type": "object",
+      "properties": {
+        "viewId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "valuesByCommitment": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "authorizedMatcherId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "viewId",
+        "valuesByCommitment",
+        "authorizedMatcherId",
+        "purpose",
+        "expiresAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

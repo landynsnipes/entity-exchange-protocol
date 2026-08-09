@@ -1,0 +1,157 @@
+{
+  "$ref": "#/definitions/match",
+  "definitions": {
+    "match": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "personEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "opportunityEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "decisionTraceId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "algorithmVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "eligible": {
+          "type": "boolean"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "requirementId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "requirementName": {
+                "type": "string"
+              },
+              "importance": {
+                "type": "string",
+                "enum": [
+                  "required",
+                  "preferred"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "strong",
+                  "moderate",
+                  "limited",
+                  "missing"
+                ]
+              },
+              "score": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "claimIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "evidenceIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              }
+            },
+            "required": [
+              "requirementId",
+              "requirementName",
+              "importance",
+              "status",
+              "score",
+              "claimIds",
+              "evidenceIds",
+              "rationale"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "hardConstraintFailures": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "uncertainty": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "explanation": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "explanationProvider": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "explanationModelVersion": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "explanationPromptVersion": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "personEntityId",
+        "opportunityEntityId",
+        "decisionTraceId",
+        "algorithmVersion",
+        "score",
+        "eligible",
+        "confidence",
+        "findings",
+        "hardConstraintFailures",
+        "uncertainty",
+        "createdAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
