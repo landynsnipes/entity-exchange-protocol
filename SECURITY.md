@@ -15,5 +15,7 @@ sensitive unless a schema explicitly classifies a field as public.
 
 ## Reporting
 
-Report vulnerabilities privately to the Veltrax maintainers. Do not open public issues for
-unpatched vulnerabilities or include real personal data in a report.
+Use GitHub's private vulnerability reporting for this repository. If private reporting is
+unavailable, contact the repository owner through GitHub without including exploit details in a
+public issue. Do not open public issues for unpatched vulnerabilities or include real personal data
+in a report.

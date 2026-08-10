@@ -1,7 +1,7 @@
 """Independent EXP HTTP node used for cross-language standing-mode interoperability.
 
 The node intentionally depends only on the published EXP schemas and Python libraries. It does not
-import the TypeScript reference gateway or any Veltrax-private package.
+import the TypeScript reference gateway or any proprietary implementation package.
 """
 from __future__ import annotations
 

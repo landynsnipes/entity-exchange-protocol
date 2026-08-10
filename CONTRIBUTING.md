@@ -5,7 +5,8 @@ contribution instructions will activate with the v0.1 release.
 
 All proposed changes must preserve privacy defaults, evidence provenance, deterministic matching,
 human approval, public/private package boundaries, and conformance coverage. Never include real
-personal data, credentials, production endpoints, or private Veltrax material in tests or examples.
+personal data, credentials, production endpoints, or confidential or proprietary material in tests
+or examples.
 
 Independent implementations should consume the schemas and conformance boundary without importing
 private reference services. Conformance adapters communicate through JSON Lines so implementations

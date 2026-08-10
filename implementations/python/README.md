@@ -1,7 +1,7 @@
 # Independent Python EXP adapter
 
 This adapter is intentionally authored without imports from the TypeScript protocol package, private
-gateway, matching engine, or Veltrax application code. It consumes the exported JSON Schemas and
+gateway, matching engine, or proprietary product code. It consumes the exported JSON Schemas and
 implements the EXP Trust/transport conformance JSONL boundary in Python.
 
 `exp_adapter.py` remains the small JSONL conformance candidate. `exp_http_node.py` promotes those

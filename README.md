@@ -1,7 +1,13 @@
 # @exp/protocol
 
 This package defines the public EXP v0.1 contract. It contains no database, application, model,
-network, or Veltrax-private imports.
+network, or proprietary implementation dependencies.
+
+## Stewardship
+
+EXP was initiated by Landyn Snipes and incubated by Veltrax Technologies. It is published as an
+open, vendor-neutral protocol under Apache-2.0. Implementing EXP, running conformance, or
+contributing to the specification does not require any Veltrax product or service.
 
 EXP contracts are operating-system and device neutral. See `docs/portability.md` for the capabilities
 required of full nodes, mobile/desktop wallets, browser clients, and delegated gateways.
@@ -35,7 +41,7 @@ npm run test:python
 The current 25-case conformance level covers trust descriptors, delegated operations, key lifecycle, planned
 root rollover, signed transport, replay and staleness, HTTPS policy, privacy-safe standing
 notifications, participant authorization, dual approval, disclosure-scope intersection, invalidation
-binding, released-proposal protection, and invalidated-decision rejection. It is
-The private incubation source additionally proves live automatic standing exchange between the
+binding, released-proposal protection, and invalidated-decision rejection. The private incubation
+source additionally proves live automatic standing exchange between the
 TypeScript gateway and this exported Python HTTP node. That proof is interoperability evidence, not a
 third-party certification or a claim that every device must operate an always-online server.
