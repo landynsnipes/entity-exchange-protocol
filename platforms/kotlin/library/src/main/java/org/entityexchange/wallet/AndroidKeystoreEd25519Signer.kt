@@ -12,6 +12,8 @@ import java.util.Base64
 sealed class EXPPlatformException(message: String, cause: Throwable? = null) : Exception(message, cause) {
     class UnsupportedSecureEd25519(cause: Throwable? = null) : EXPPlatformException("Secure Ed25519 is unavailable on this device.", cause)
     class MissingKey(alias: String) : EXPPlatformException("EXP wallet key is missing: $alias")
+    class InvalidPublicKeyEncoding(alias: String) : EXPPlatformException("Ed25519 public key encoding is invalid: $alias")
+    class UnsupportedKeyAlgorithm(alias: String) : EXPPlatformException("Key is not Ed25519: $alias")
 }
 
 data class EXPKeyCapability(val algorithm: String, val hardwareBacked: Boolean)
@@ -36,8 +38,22 @@ class AndroidKeystoreEd25519Signer(private val alias: String) {
         return capability()
     }
 
-    fun publicKeyRaw(): ByteArray = store.getCertificate(alias)?.publicKey?.encoded
+    /** Returns the SPKI DER representation used by Android's certificate API. */
+    fun publicKeySpkiDer(): ByteArray = store.getCertificate(alias)?.publicKey?.encoded
         ?: throw EXPPlatformException.MissingKey(alias)
+
+    /** Returns the 32-byte raw Ed25519 public key expected by wallet platform adapters. */
+    fun publicKeyRaw(): ByteArray {
+        val encoded = publicKeySpkiDer()
+        val prefix = byteArrayOf(
+            0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65,
+            0x70, 0x03, 0x21, 0x00,
+        )
+        if (encoded.size != prefix.size + 32 || !encoded.copyOf(prefix.size).contentEquals(prefix)) {
+            throw EXPPlatformException.InvalidPublicKeyEncoding(alias)
+        }
+        return encoded.copyOfRange(prefix.size, encoded.size)
+    }
 
     fun sign(canonicalPayload: ByteArray): String {
         val key = store.getKey(alias, null) ?: throw EXPPlatformException.MissingKey(alias)
@@ -51,6 +67,7 @@ class AndroidKeystoreEd25519Signer(private val alias: String) {
 
     private fun capability(): EXPKeyCapability {
         val key = store.getKey(alias, null) as? java.security.PrivateKey ?: throw EXPPlatformException.MissingKey(alias)
+        if (key.algorithm != "Ed25519") throw EXPPlatformException.UnsupportedKeyAlgorithm(alias)
         val factory = KeyFactory.getInstance(key.algorithm, "AndroidKeyStore")
         val info = factory.getKeySpec(key, KeyInfo::class.java)
         return EXPKeyCapability(algorithm = key.algorithm, hardwareBacked = info.isInsideSecureHardware)

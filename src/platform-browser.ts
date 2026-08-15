@@ -52,7 +52,8 @@ export class PinnedWebCryptoRequestVerifier implements WalletRequestVerifier {
 /** Adapts the browser fetch implementation without exposing Response internals to the core SDK. */
 export const browserWalletFetch: WalletFetch = async (input, init) => {
   const response = await fetch(input, init);
-  return { ok: response.ok, status: response.status, json: () => response.json() as Promise<unknown> };
+  const headers = Object.fromEntries(response.headers.entries());
+  return { ok: response.ok, status: response.status, headers, json: () => response.json() as Promise<unknown> };
 };
 
 export interface BrowserWalletKeyMaterial {

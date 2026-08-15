@@ -23,15 +23,15 @@ conforms to the public contracts.
 
 ## Trust boundary
 
-`packages/catalog` is an in-memory reference implementation. It verifies signatures through an
-injected trust interface, permits exact idempotent retries, rejects changed registrations and
-signature reuse, enforces discovery authorization, filters withdrawn or expired records, prevents
-peer loops, and bounds federation depth and result count. The signed discovery layer adds expiring
-requests, nonce replay protection, external key resolution, deterministic cursors, and cached exact
-retry responses. Its transport-neutral peer interface reports partial failures without hiding them.
-Two-catalog tests prove interoperability without placing publisher identity or sealed values in results.
+The public TypeScript contracts are defined in [`src/catalog.ts`](../src/catalog.ts). An in-memory
+catalog implementation may verify signatures through an injected trust interface, permit exact
+idempotent retries, reject changed registrations and signature reuse, enforce discovery
+authorization, filter withdrawn or expired records, prevent peer loops, and bound federation depth
+and result count. The signed discovery layer adds expiring requests, nonce replay protection,
+external key resolution, deterministic cursors, and cached exact retry responses. A
+transport-neutral peer interface should report partial failures without hiding them.
 
-This remains a conformance proof, not a production network. Durable storage, production key discovery
+This remains a conformance exercise, not a production network. Durable storage, production key discovery
 and rotation, transport authentication, peer reputation, network timeouts, rate limits, abuse controls,
 and operational telemetry remain future work. Sealed comparison occurs
 only after discovery, through an authorized matcher, and never inside the public catalog index.

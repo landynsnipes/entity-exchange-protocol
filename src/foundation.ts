@@ -53,6 +53,24 @@ export const agentAuthorizationSchema = z.object({
   grantedAt: z.string().datetime(),
   expiresAt: z.string().datetime(),
   revokedAt: z.string().datetime().optional(),
+}).superRefine((authorization, context) => {
+  if (Date.parse(authorization.grantedAt) >= Date.parse(authorization.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "authorization expiry must follow grant time" });
+  }
+  if (authorization.revokedAt !== undefined && (Date.parse(authorization.revokedAt) < Date.parse(authorization.grantedAt)
+    || Date.parse(authorization.revokedAt) > Date.parse(authorization.expiresAt))) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["revokedAt"], message: "revocation must fall within authorization lifetime" });
+  }
+  if (new Set(authorization.allowedOperations).size !== authorization.allowedOperations.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["allowedOperations"], message: "allowed operations must be unique" });
+  }
+  if (new Set(authorization.allowedDisclosureScopes).size !== authorization.allowedDisclosureScopes.length
+    || new Set(authorization.prohibitedDisclosureScopes).size !== authorization.prohibitedDisclosureScopes.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["allowedDisclosureScopes"], message: "disclosure scopes must be unique" });
+  }
+  if (authorization.allowedDisclosureScopes.some((scope) => authorization.prohibitedDisclosureScopes.includes(scope))) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["prohibitedDisclosureScopes"], message: "allowed and prohibited scopes must not overlap" });
+  }
 });
 
 /**
@@ -71,6 +89,11 @@ export const intentProjectionSchema = z.object({
   containsRawConversation: z.literal(false),
   reviewedByPrincipalAt: z.string().datetime().optional(),
   createdAt: z.string().datetime(),
+}).superRefine((projection, context) => {
+  if (projection.reviewedByPrincipalAt !== undefined
+    && Date.parse(projection.reviewedByPrincipalAt) > Date.parse(projection.createdAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["reviewedByPrincipalAt"], message: "review time cannot be after projection creation" });
+  }
 });
 
 /** Describes a scoped discovery request that can be served by any conforming gateway. */
@@ -110,6 +133,14 @@ export const contextualEvaluationSchema = z.object({
   evidenceSnapshotHash: z.string().min(16).max(256),
   createdAt: z.string().datetime(),
   expiresAt: z.string().datetime(),
+}).superRefine((evaluation, context) => {
+  if (Date.parse(evaluation.createdAt) >= Date.parse(evaluation.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "evaluation expiry must follow creation" });
+  }
+  const criterionIds = evaluation.findings.map((finding) => finding.criterionId);
+  if (new Set(criterionIds).size !== criterionIds.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["findings"], message: "finding criterion IDs must be unique" });
+  }
 });
 
 /** Creates a non-binding invitation to continue an exchange; it is never an automatic transaction. */
@@ -123,6 +154,16 @@ export const connectionProposalSchema = z.object({
   state: z.enum(["draft", "proposed", "accepted", "declined", "withdrawn", "expired"]),
   createdAt: z.string().datetime(),
   expiresAt: z.string().datetime(),
+}).superRefine((proposal, context) => {
+  if (proposal.initiatorEntityId === proposal.counterpartyEntityId) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["counterpartyEntityId"], message: "proposal parties must differ" });
+  }
+  if (Date.parse(proposal.createdAt) >= Date.parse(proposal.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "proposal expiry must follow creation" });
+  }
+  if (new Set(proposal.requestedDisclosureScopes).size !== proposal.requestedDisclosureScopes.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["requestedDisclosureScopes"], message: "disclosure scopes must be unique" });
+  }
 });
 
 /** Records each party's independent human decision before a governed connection is released. */
@@ -135,6 +176,10 @@ export const connectionDecisionSchema = z.object({
   approvedDisclosureScopes: z.array(z.string().min(1).max(200)).default([]),
   reason: z.string().max(1000).optional(),
   decidedAt: z.string().datetime(),
+}).superRefine((decision, context) => {
+  if (new Set(decision.approvedDisclosureScopes).size !== decision.approvedDisclosureScopes.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["approvedDisclosureScopes"], message: "disclosure scopes must be unique" });
+  }
 });
 
 export type Intent = z.infer<typeof intentSchema>;

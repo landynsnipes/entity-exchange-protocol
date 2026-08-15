@@ -1,0 +1,95 @@
+{
+  "$ref": "#/definitions/version-capabilities",
+  "definitions": {
+    "version-capabilities": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?$"
+          },
+          "minItems": 1
+        },
+        "profile": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/version-capabilities/properties/protocol/items"
+          },
+          "minItems": 1
+        },
+        "foundation": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/version-capabilities/properties/protocol/items"
+          },
+          "minItems": 1
+        },
+        "catalog": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/version-capabilities/properties/protocol/items"
+          },
+          "minItems": 1
+        },
+        "standing": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/version-capabilities/properties/protocol/items"
+          },
+          "minItems": 1
+        },
+        "trust": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/version-capabilities/properties/protocol/items"
+          },
+          "minItems": 1
+        },
+        "wallet": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/version-capabilities/properties/protocol/items"
+          },
+          "minItems": 1
+        },
+        "commerce": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/version-capabilities/properties/protocol/items"
+          },
+          "minItems": 1
+        },
+        "relationship": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/version-capabilities/properties/protocol/items"
+          },
+          "minItems": 1
+        },
+        "hospitality": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/version-capabilities/properties/protocol/items"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "protocol",
+        "profile",
+        "foundation",
+        "catalog",
+        "standing",
+        "trust",
+        "wallet",
+        "commerce",
+        "relationship",
+        "hospitality"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

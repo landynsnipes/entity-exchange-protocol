@@ -1,0 +1,85 @@
+{
+  "manifestVersion": "0.1.0",
+  "canonicalization": "RFC8785-JCS",
+  "supportedVersions": {
+    "protocol": [
+      "0.1.0"
+    ],
+    "profile": [
+      "0.1.0"
+    ],
+    "foundation": [
+      "0.2.0-draft.1"
+    ],
+    "catalog": [
+      "0.1.0-draft.1"
+    ],
+    "standing": [
+      "0.1.0-draft.1"
+    ],
+    "trust": [
+      "0.1.0-draft.2"
+    ],
+    "wallet": [
+      "0.1.0-draft.1"
+    ],
+    "commerce": [
+      "0.1.0-draft.1"
+    ],
+    "relationship": [
+      "0.1.0-draft.1"
+    ],
+    "hospitality": [
+      "0.1.0-draft.1"
+    ]
+  },
+  "files": {
+    "entity-card.schema.json": "0136a1d0be84a88c0fe9c9685fa7a89f43af76af62f1c1eceae4e4f65eae64f5",
+    "person-card.schema.json": "50e535c1895c811af040737e7cee1f6aba5f4bf13399aab3b6f7c67af25cfc8f",
+    "organization-card.schema.json": "6e1e21701669d60ee38a0605cdef592f59643d2a27fc4656739483e4c0e90b51",
+    "opportunity-card.schema.json": "4feae6b2702ce117a17aac638856e366298e46f81e3461e1d5bdabdd3d9e5d72",
+    "agent-card.schema.json": "e4d6b35e38ba7f1292e8145719e55ba419519a4be51e17cb2a10943110d748a8",
+    "evidence.schema.json": "5a82762b0c76faafbfaa033845cbfff26091085f254fa8a2e08353f2b5eb0bfc",
+    "consent.schema.json": "7b0ad9aa1f15f76bc60852e60367236196cfbc8fdccc130e3a92d39fd70b6dae",
+    "intent.schema.json": "ae9c49c70eb26e9ffc20553004ec9d53ac2110a068a7c11d49f65a321230c395",
+    "agent-authorization.schema.json": "d515abee055dd3a8ce8ee8eb92000a7e293fb2fa8b3f10383386c75843b9f546",
+    "intent-projection.schema.json": "afdb4a93d6365174943d85df85738480ab28167b658f6c172499264df71d97a5",
+    "discovery-request.schema.json": "732903ed0c05578bcdd6f80e7f4549cb15a6f0c30aee9b3a215b0311a15f3ecc",
+    "contextual-evaluation.schema.json": "ce17a5b0e33548c8cdef859fcad32ae3b2f108461a4a297b5fbee09834b88631",
+    "connection-proposal.schema.json": "ccbbf27d089e4acf20f84b7f2a2fffbd2f0fdae1283e93ec9e5662aa2b646722",
+    "catalog-descriptor.schema.json": "1866750ebe8c58e8abfb7309c7253e979cb1cda07d6f395c67797652de253ebf",
+    "catalog-registration.schema.json": "7c8feb7fffd84cf0e4984414b3d9a18798aa49b5452d3ca58e702cd0d2462ac9",
+    "catalog-discovery-query.schema.json": "d48d2602d9499c8af54ce4a06af78e79f99817c998dc8b9e003a506f87767c92",
+    "catalog-discovery-response.schema.json": "7c3c306ce88a99014cb003cf3b3a6b692a05cd21d34f455c02549ee06e21ca30",
+    "signed-catalog-discovery-query.schema.json": "c6726c4d605776b63e135ad9b46feb5e48ad27ac5770f3d0877be0438a005d1d",
+    "connection-decision.schema.json": "4082ed9b14222421b30410d5c1ac4a43498128b1dd1c6a9791cbf02ace0b251e",
+    "commerce-intent.schema.json": "2b864ff9c40cab6e4a0969da7bed649921710b2726dc3a050d76f23b693cb512",
+    "product-offer.schema.json": "ed3edf0cc4f14e53db56824dfeaffdfae65036f77177164534766e45e45a0863",
+    "entity-model.schema.json": "a6778abbc8bb4d43fadd18bd53cc1134e09e05258b12bcd88eee7c84b8fbd353",
+    "entity-view-definition.schema.json": "6f047aeb59053cdddf5ccaa1a086f435aa4b863713362c0d38a17310f54caa16",
+    "entity-view.schema.json": "14b73ff1d3e2c0e982e91b71c6ae69d04d137836334e6e62c9edfa7d0723aff4",
+    "sealed-match-material.schema.json": "da57f6a076f99b8d239f6204e8d0180efa6f25dfaa3c4a7f7984ce2b262d2578",
+    "standing-discovery-authorization.schema.json": "20c7c60107aa7fd155ed82caef822e636341d0ee6887f9ed02617665c57eded9",
+    "relationship-intent.schema.json": "07f0f552f8a91bc7d6d5f0ad15528914d1b48545d42dd73e1b1720a8b794006e",
+    "relationship-match-explanation.schema.json": "a5ea273d985792f8690e2f767f5edbba3288c920c8768cae8ad53ab758b9d996",
+    "reciprocal-evaluation.schema.json": "b1ec2aaed26e4d29bcadf04546fa4c4580bf0b79f8ccb83c0995647cb48c5ac7",
+    "entity-state-change.schema.json": "3947028c74957ec76072fbd197a26f04f1b7e161b4b3e93b9ee3b9ca890f9b59",
+    "standing-match-notification.schema.json": "ffcf0cd9ea884ce4394bbde0915ed1d732822b252aed51a2ef50ef0cf120cfa7",
+    "standing-match-invalidation.schema.json": "e6219160f6b380766b5be576a1b2f7baff6cf3bf7bba09fe35e8912a60de82da",
+    "disclosure-release.schema.json": "bb41b1b8b3e887ec331935b7c86dea6a07fbd71887ec3a30602195abcaf9e2ef",
+    "node-descriptor.schema.json": "ce91287528ee2cb81f87c8bdca2d45706d3927308c4e558af4307ea9068fcb50",
+    "node-verification-key.schema.json": "1c0dd850301badba6374cfe51efbd22ca19a3263d4676bb4a47b9f89e6012574",
+    "node-authority-grant.schema.json": "4779833f3b95d499ef811befcceb0301fe8527b1a18236a91e34bdd77bbba69c",
+    "federation-operation.schema.json": "18a4a470a1344644070da0cfe82513ce9f20d01b256e8b92d2c3e7525684d881",
+    "root-transition.schema.json": "83cc20e3817ec4f7c0782a2f8352f0c84c0c4c7cff049430552e4f2d2d423323",
+    "wallet-capability-profile.schema.json": "19af477e1d13b77d1d74f5359131926a971506ff9554c9014b674a3845ee5796",
+    "wallet-connect-request.schema.json": "d85578c4639fe055ccdf21338dedcd7567a8a854a01e8203bb3357dc6616a693",
+    "wallet-consent-receipt.schema.json": "2c8d08da69db513ec95d77e5bf84ac1a2acca9672f6950fb77b9aeb9479278ff",
+    "wallet-presentation.schema.json": "d46f2b4bb1a00e2680cc215f74b0369b3c3ab7f48826aade5c2285e72ef216f0",
+    "match.schema.json": "efbe4a5b41d9a2f9a6f74eeae844c9ed28127c21acbf8cb4a4d693fe8a059a4d",
+    "introduction-decision.schema.json": "69e7ff4c3ae619feb4f8f4113273d8b743fd208aabd24e4148daf063317a31c0",
+    "version-capabilities.schema.json": "d03c60763db4a3868cdbecc5c5ec18d21ebb11bf61276468f74e4f86bdaafedc",
+    "hospitality-intent.schema.json": "cfb64a66c7925c12a21684f6328092d90c89f93ca5cb933c8777712c8177db9e",
+    "hospitality-service-offer.schema.json": "9a76e3edc57510bc7917d5d7ce6a5b9e76471d1da8c49f68c18146a3c8facf10"
+  }
+}

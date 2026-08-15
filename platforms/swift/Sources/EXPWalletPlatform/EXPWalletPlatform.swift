@@ -7,11 +7,21 @@ public enum EXPPlatformError: Error, Equatable {
     case keychainFailure(OSStatus)
     case invalidKeyMaterial
     case requestFailed(Int)
+    case requestCancelled
+    case requestTimeout
+    case transportFailure
+}
+
+public protocol EXPWalletLifecycleAdapter: Sendable {
+    func openExternal(uri: String) async throws
+    func registerDeepLink(handler: @escaping @Sendable (String) async -> Void) -> @Sendable () -> Void
+    func scheduleGatewayWakeup(authorizationId: String, notAfter: Date) async throws
 }
 
 public struct EXPHTTPResult: Sendable {
     public let status: Int
     public let body: Data
+    public let headers: [String: String]
 }
 
 public actor EXPKeychainEd25519Signer {
@@ -87,18 +97,36 @@ public struct EXPURLSessionTransport: Sendable {
         self.allowLoopbackHTTPForProof = allowLoopbackHTTPForProof
     }
 
-    public func send(url: URL, method: String, body: Data? = nil) async throws -> EXPHTTPResult {
+    public func send(url: URL, method: String, body: Data? = nil, deadline: Date? = nil) async throws -> EXPHTTPResult {
         let loopback = url.host == "localhost" || url.host == "127.0.0.1" || url.host == "::1"
         guard url.scheme == "https" || (allowLoopbackHTTPForProof && loopback) else {
             throw EXPPlatformError.insecureTransport
         }
-        var request = URLRequest(url: url, timeoutInterval: timeout)
+        guard timeout > 0, timeout.isFinite else { throw EXPPlatformError.requestTimeout }
+        let deadlineTimeout = deadline.map { $0.timeIntervalSinceNow }
+        guard deadlineTimeout == nil || deadlineTimeout! > 0 else { throw EXPPlatformError.requestTimeout }
+        let effectiveTimeout = min(timeout, deadlineTimeout ?? timeout)
+        var request = URLRequest(url: url, timeoutInterval: effectiveTimeout)
         request.httpMethod = method
         request.httpBody = body
         if body != nil { request.setValue("application/json", forHTTPHeaderField: "Content-Type") }
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch let error as URLError where error.code == .cancelled || Task.isCancelled {
+            throw EXPPlatformError.requestCancelled
+        } catch let error as URLError where error.code == .timedOut {
+            throw EXPPlatformError.requestTimeout
+        } catch {
+            throw EXPPlatformError.transportFailure
+        }
         guard let http = response as? HTTPURLResponse else { throw EXPPlatformError.requestFailed(0) }
-        return EXPHTTPResult(status: http.statusCode, body: data)
+        var headers: [String: String] = [:]
+        for (key, value) in http.allHeaderFields {
+            headers[String(describing: key)] = String(describing: value)
+        }
+        return EXPHTTPResult(status: http.statusCode, body: data, headers: headers)
     }
 }
 

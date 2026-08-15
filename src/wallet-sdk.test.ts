@@ -57,4 +57,88 @@ describe("runtime-neutral wallet SDK", () => {
       principalEntityId: view.entityId, approvedScopes: ["health.records"], approvedOperations: ["evaluate"], expiresAt: later,
     })).rejects.toBeInstanceOf(WalletSdkError);
   });
+
+  it("distinguishes caller cancellation from the SDK timeout", async () => {
+    const sdk = new ExpWalletSdk({
+      fetch: (_url, init): Promise<WalletFetchResponse> => new Promise((_resolve, reject) => {
+        init.signal.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
+      }),
+      verifier: { verify: (): Promise<boolean> => Promise.resolve(true) },
+      signer: { keyId: "wallet-key", sign: (): Promise<string> => Promise.resolve("s".repeat(86)) },
+      now: (): string => now,
+      createId: (): string => "94000000-0000-4000-8000-000000000009",
+      timeoutMs: 1_000,
+    });
+    const controller = new AbortController();
+    const pending = sdk.retrieveRequest("https://shop.example/request", {
+      signal: controller.signal,
+      requestId: "request-cancelled",
+    });
+    controller.abort();
+    await expect(pending).rejects.toMatchObject({
+      code: "REQUEST_CANCELLED",
+      requestId: "request-cancelled",
+      retryable: false,
+    });
+  });
+
+  it("enforces a caller deadline and normalizes malformed responses", async () => {
+    const sdk = new ExpWalletSdk({
+      fetch: (url): Promise<WalletFetchResponse> => Promise.resolve(
+        response(url.endsWith("/malformed") ? { invalid: true } : request),
+      ),
+      verifier: { verify: (): Promise<boolean> => Promise.resolve(true) },
+      signer: { keyId: "wallet-key", sign: (): Promise<string> => Promise.resolve("s".repeat(86)) },
+      now: (): string => now,
+      createId: (): string => "94000000-0000-4000-8000-000000000009",
+    });
+    await expect(sdk.retrieveRequest("https://shop.example/request", {
+      deadlineAt: "2026-08-09T15:59:00.000Z",
+    })).rejects.toMatchObject({ code: "DEADLINE_EXCEEDED" });
+    await expect(sdk.retrieveRequest("https://shop.example/malformed")).rejects.toMatchObject({
+      code: "INVALID_RESPONSE",
+      retryable: false,
+    });
+  });
+
+  it("classifies retryable HTTP rejection and Retry-After metadata", async () => {
+    const sdk = new ExpWalletSdk({
+      fetch: (): Promise<WalletFetchResponse> => Promise.resolve({
+        ok: false,
+        status: 429,
+        headers: { "retry-after": "3" },
+        json: () => Promise.resolve({}),
+      }),
+      verifier: { verify: (): Promise<boolean> => Promise.resolve(true) },
+      signer: { keyId: "wallet-key", sign: (): Promise<string> => Promise.resolve("s".repeat(86)) },
+      now: (): string => now,
+      createId: (): string => "94000000-0000-4000-8000-000000000009",
+    });
+    await expect(sdk.retrieveRequest("https://shop.example/request")).rejects.toMatchObject({
+      code: "REQUEST_REJECTED",
+      status: 429,
+      retryable: true,
+      retryAfterMs: 3_000,
+    });
+  });
+
+  it("keeps cancellation active while a response body is being decoded", async () => {
+    const sdk = new ExpWalletSdk({
+      fetch: (_url, init): Promise<WalletFetchResponse> => Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => new Promise((_resolve, reject) => {
+          init.signal.addEventListener("abort", () => reject(new Error("body aborted")), { once: true });
+        }),
+      }),
+      verifier: { verify: (): Promise<boolean> => Promise.resolve(true) },
+      signer: { keyId: "wallet-key", sign: (): Promise<string> => Promise.resolve("s".repeat(86)) },
+      now: (): string => now,
+      createId: (): string => "94000000-0000-4000-8000-000000000009",
+      timeoutMs: 1,
+    });
+    await expect(sdk.retrieveRequest("https://shop.example/request")).rejects.toMatchObject({
+      code: "REQUEST_TIMEOUT",
+    });
+  });
 });

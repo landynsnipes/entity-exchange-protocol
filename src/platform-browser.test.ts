@@ -33,6 +33,7 @@ describe("WebCrypto browser wallet adapter", () => {
     const generated = await generateBrowserWalletKey("browser-wallet-key");
     const signature = await generated.signer.sign(new TextEncoder().encode("EXP"));
     const publicKey = await importRequesterPublicKey(generated.publicKeyRaw);
+    expect(generated.publicKeyRaw.byteLength).toBe(32);
     expect(signature.length).toBeGreaterThan(80);
     expect(await crypto.subtle.verify("Ed25519", publicKey, new Uint8Array(Buffer.from(signature, "base64url")), new TextEncoder().encode("EXP"))).toBe(true);
   });

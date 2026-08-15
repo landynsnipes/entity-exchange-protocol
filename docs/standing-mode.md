@@ -1,13 +1,13 @@
 # EXP standing mode
 
 Standing mode is the protocol behavior that lets an entity maintain a revocable intent and react to
-relevant counterpart changes without repeatedly searching. It is the first proof of EXP as
-persistent, decentralized intent rather than a marketplace application.
+relevant counterpart changes without repeatedly searching. It describes persistent, decentralized
+intent rather than a marketplace application.
 
-## Proven flow
+## Protocol flow
 
-The private reference implementation now exercises this sequence with two separately operated
-in-memory nodes and two federated catalogs:
+A conforming implementation may realize this sequence with local services, HTTP peers, queues, or
+agent runtimes:
 
 1. Each principal owns its Entity Model, purpose-specific Entity View, intent, authorization, keys,
    catalog, and notification inbox.
@@ -31,7 +31,7 @@ in-memory nodes and two federated catalogs:
 - Models, views, records, authorizations, and inboxes belong to their respective nodes.
 - Catalogs exchange signed references and bounded discovery responses, not source models.
 - Peer relationships are explicit and hop-limited.
-- The coordinator in `packages/standing` is a reference event orchestrator, not a required central
+- The coordinator in [`src/standing.ts`](../src/standing.ts) is a reference event orchestrator, not a required central
   network service. Its interfaces can be distributed across HTTP, MCP, queues, or local agent
   runtimes without changing the protocol contracts.
 
@@ -46,32 +46,15 @@ in-memory nodes and two federated catalogs:
 - Identity and contact scopes are released only by intersecting two independent approvals.
 - A changed source state invalidates unresolved results based on the earlier snapshot.
 - Every accepted state change, republication, evaluation, notification, decision, invalidation, and
-  release produces an audit event in the reference proof.
+  release should produce an audit event in an implementation's audit subsystem.
 
-## What this proof does not claim
+## Verification boundary
 
-The original contract proof remains a fast in-process conformance test. A second proof runs the flow
-through two independently configured TypeScript HTTP child processes with durable stores and signed
-transport. A third proof now connects the TypeScript gateway to an independently authored Python HTTP
-node and completes automatic discovery, reciprocal evaluation, proposal delivery, independent
-approval, and disclosure release. The Python node imports neither TypeScript nor private packages;
-its lightweight persistence and reduced lifecycle surface are not production federation.
+The public conformance suite verifies the standing notification, decision, approval, disclosure, and
+invalidation state machine. It does not certify automatic discovery, durable retry/requeue,
+production federation, PostgreSQL operation, or multi-replica deployment. Those concerns are
+implementation choices and require separately published tests and operational evidence.
 
-The Python path now persists pending delivery, retries automatically after restart, keeps outbox
-bodies out of operator status, and preserves revocation and invalidation state. The live proof starts
-the TypeScript peer offline, restarts the Python process, completes delivery, then proves that a
-persisted revocation suppresses a later automatic match.
-The same proof now rotates the Python descriptor root through a dual-signed transition, remotely
-invalidates an unresolved notification on both nodes, rejects decisions on invalidated results,
-dead-letters a later offline delivery, exposes no queued body during inspection, authenticates the
-requeue, and completes delivery after the peer returns.
-
-## Next proof
-
-The operated retry worker and optional transactional PostgreSQL adapter now preserve standing state,
-outbox recovery, row-locked mutations, and integrity revisions across restarts. Root-pinned signed
-descriptors now support operational-key discovery, overlapping rotation, revocation, and expiry.
-The cross-language lifecycle proof is complete for this reference level. Next, define browser and
-mobile-wallet conformance profiles. MCP can
-expose local controls without changing EXP discovery, evaluation, approval, or disclosure semantics.
-See `cross-process-standing-proof.md`.
+Future public work may define browser and mobile-wallet capability profiles. Local controls can be
+exposed through MCP or another adapter without changing EXP discovery, evaluation, approval, or
+disclosure semantics.

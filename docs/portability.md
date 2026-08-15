@@ -25,10 +25,10 @@ one model provider, or one central EXP database.
 
 | Platform | Expected EXP form | Current status |
 | --- | --- | --- |
-| Linux, Windows, macOS | Local wallet, desktop service, CLI, or hosted gateway | Protocol-compatible; Python proof is portable where Python 3 and its two dependencies are available |
+| Linux, Windows, macOS | Local wallet, desktop service, CLI, or hosted gateway | Protocol-compatible; the Python adapter is portable where Python 3 and its two dependencies are available |
 | iOS and Android | Native wallet using Keychain/Keystore, with background work delegated to OS scheduling or a chosen gateway | Swift and Android source packages exist; Apple/Android toolchain and device lifecycle verification remain pending |
 | Web browser | Web wallet using WebCrypto where supported, passkeys or platform keys, and a service worker or paired gateway | WebCrypto/fetch adapter builds and passes signing and pinned-verification tests; installable browser extension UX remains product work |
-| Servers and private clouds | Long-running gateway using managed keys, durable storage, TLS, monitoring, and backups | TypeScript reference exists; production fleet controls remain incomplete |
+| Servers and private clouds | Long-running gateway using managed keys, durable storage, TLS, monitoring, and backups | TypeScript protocol implementation exists; production fleet controls remain incomplete |
 | Constrained or intermittently connected devices | Thin client delegating standing operation to a principal-selected gateway | Supported through delegation; a device is not expected to remain online continuously |
 
 ## Important limitations
@@ -37,9 +37,9 @@ one model provider, or one central EXP database.
   requires push notifications, OS background scheduling, or a gateway selected by the principal.
 - Browsers cannot safely expose a permanent inbound federation listener and have restricted key and
   storage APIs. A browser wallet will usually pair with a gateway while retaining consent control.
-- The current Python proof uses an atomic JSON file and environment/configuration-provided keys. A
+- The current Python adapter uses an atomic JSON file and environment/configuration-provided keys. A
   production app must use platform secure storage and production-grade backup/recovery.
-- External federation requires HTTPS. Plain HTTP is accepted only for explicit loopback proofs.
+- External federation requires HTTPS. Plain HTTP is accepted only for explicit loopback tests.
 - Portability does not mean copying every private attribute to every device. Synchronization remains
   provider-selected, encrypted, scoped, revocable, and controlled by the principal.
 

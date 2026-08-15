@@ -2,7 +2,16 @@
 
 EXP's platform layer separates protocol semantics from device APIs. The public TypeScript SDK owns
 request validation, origin binding, consent narrowing, Entity View validation, canonical signing
-payloads, timeouts, and submission. Platform adapters supply secure signing and transport.
+payloads, caller cancellation, deadlines, timeouts, structured runtime errors, and submission.
+Platform adapters supply secure signing and transport.
+
+See [`implementing-exp.md`](implementing-exp.md) for language-specific setup commands and the
+conformance/reporting boundary.
+
+Wallet operations accept an optional `AbortSignal`, `deadlineAt`, and `requestId`. Adapters should
+preserve cancellation and timeout causes, return response headers such as `Retry-After`, and map
+transport failures to the shared runtime error vocabulary. These controls are local runtime
+behavior; they are not additional signed wallet fields.
 
 ## Browser
 

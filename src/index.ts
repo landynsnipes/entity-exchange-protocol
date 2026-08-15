@@ -3,12 +3,7 @@
  * Purpose: Defines the portable Entity Card schemas shared by every implementation.
  */
 import { z } from "zod";
-
-/** Identifies the wire-level EXP version independently from profile versions. */
-export const EXP_PROTOCOL_VERSION = "0.1.0" as const;
-
-/** Identifies the first profile schema set. */
-export const EXP_PROFILE_VERSION = "0.1.0" as const;
+import { EXP_PROFILE_VERSION, EXP_PROTOCOL_VERSION } from "./compatibility.js";
 
 /** Defines supported entity types in EXP v0.1. */
 export const entityTypeSchema = z.enum(["person", "organization", "opportunity", "agent"]);
@@ -51,6 +46,11 @@ export const verificationSchema = z.object({
   verifier: z.string().min(1).max(256).optional(),
   verifiedAt: z.string().datetime().optional(),
   expiresAt: z.string().datetime().optional(),
+}).superRefine((verification, context) => {
+  if (verification.verifiedAt !== undefined && verification.expiresAt !== undefined
+    && Date.parse(verification.verifiedAt) >= Date.parse(verification.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "verifiedAt must precede expiresAt" });
+  }
 });
 
 /** Stores one bounded assertion about an entity. */
@@ -66,6 +66,13 @@ export const claimSchema = z.object({
   provenance: provenanceSchema,
   issuedAt: z.string().datetime(),
   expiresAt: z.string().datetime().optional(),
+}).superRefine((claim, context) => {
+  if (claim.expiresAt !== undefined && Date.parse(claim.issuedAt) >= Date.parse(claim.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "claim expiry must follow issuance" });
+  }
+  if (new Set(claim.evidenceIds).size !== claim.evidenceIds.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["evidenceIds"], message: "evidence IDs must be unique" });
+  }
 });
 
 /** Stores evidence separately so multiple claims can cite the same source. */
@@ -172,7 +179,24 @@ export const entityCardSchema = z.discriminatedUnion("entityType", [
   organizationCardSchema,
   opportunityCardSchema,
   agentCardSchema,
-]);
+]).superRefine((card, context) => {
+  if (Date.parse(card.updatedAt) < Date.parse(card.createdAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["updatedAt"], message: "updatedAt must not precede createdAt" });
+  }
+  const claimIds = card.claims.map((claim) => claim.id);
+  if (new Set(claimIds).size !== claimIds.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["claims"], message: "claim IDs must be unique" });
+  }
+  if (card.entityType === "opportunity") {
+    const { compensationMin, compensationMax, currency } = card.profile;
+    if (compensationMin !== undefined && compensationMax !== undefined && compensationMin > compensationMax) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ["profile", "compensationMax"], message: "compensationMin must not exceed compensationMax" });
+    }
+    if ((compensationMin !== undefined || compensationMax !== undefined) && currency === undefined) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ["profile", "currency"], message: "currency is required with compensation" });
+    }
+  }
+});
 
 /** Defines one purpose-bound and revocable disclosure authorization. */
 export const consentGrantSchema = z.object({
@@ -185,6 +209,23 @@ export const consentGrantSchema = z.object({
   grantedAt: z.string().datetime(),
   expiresAt: z.string().datetime(),
   revokedAt: z.string().datetime().optional(),
+}).superRefine((consent, context) => {
+  if (consent.subjectEntityId === consent.granteeEntityId) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["granteeEntityId"], message: "consent grantee must differ from subject" });
+  }
+  if (Date.parse(consent.grantedAt) >= Date.parse(consent.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "consent expiry must follow grant time" });
+  }
+  if (new Set(consent.scopes).size !== consent.scopes.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["scopes"], message: "consent scopes must be unique" });
+  }
+  if (consent.state === "revoked" && consent.revokedAt === undefined) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["revokedAt"], message: "revoked consent requires revokedAt" });
+  }
+  if (consent.revokedAt !== undefined && (Date.parse(consent.revokedAt) < Date.parse(consent.grantedAt)
+    || Date.parse(consent.revokedAt) > Date.parse(consent.expiresAt))) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["revokedAt"], message: "revocation must fall within consent lifetime" });
+  }
 });
 
 /** Describes how one requirement matched the person's evidence. */
@@ -229,6 +270,10 @@ export const introductionDecisionSchema = z.object({
   reason: z.string().max(1000).optional(),
   decidedAt: z.string().datetime(),
   expiresAt: z.string().datetime(),
+}).superRefine((decision, context) => {
+  if (Date.parse(decision.decidedAt) >= Date.parse(decision.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "decision expiry must follow decision time" });
+  }
 });
 
 /** TypeScript type for any EXP Entity Card. */
@@ -249,6 +294,14 @@ export * from "./trust.js";
 export * from "./wallet.js";
 export * from "./wallet-sdk.js";
 export * from "./platform-browser.js";
+export * from "./canonical-json.js";
+export * from "./compatibility.js";
+export * from "./errors.js";
+export * from "./resource-limits.js";
+export * from "./signing.js";
+export * from "./transport.js";
+export * from "./in-memory-transport.js";
+export * from "./hospitality.js";
 /** TypeScript type for an Opportunity Card. */
 export type OpportunityCard = z.infer<typeof opportunityCardSchema>;
 /** TypeScript type for an Agent Card. */

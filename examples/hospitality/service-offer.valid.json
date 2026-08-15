@@ -1,0 +1,20 @@
+{
+  "profileVersion": "0.1.0-draft.1",
+  "profileId": "org.entity-exchange.profile.hospitality",
+  "id": "80000000-0000-4000-8000-000000000104",
+  "providerEntityId": "80000000-0000-4000-8000-000000000105",
+  "serviceKind": "venue",
+  "title": "Example Robot Restaurant",
+  "purpose": "hospitality.menu_and_seating",
+  "capabilities": ["menu_personalization", "seating_discovery", "allergy_safety_screening"],
+  "supportedNamespaces": [
+    "hospitality.seating.preference",
+    "hospitality.food.preference",
+    "hospitality.allergy.constraints"
+  ],
+  "endpoint": "https://restaurant.example/exp",
+  "containsIdentity": false,
+  "containsRawHealthData": false,
+  "createdAt": "2026-08-14T20:00:00.000Z",
+  "expiresAt": "2026-08-15T20:00:00.000Z"
+}

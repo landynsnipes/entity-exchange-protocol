@@ -1,0 +1,112 @@
+{
+  "version": "exp-core-conformance-0.1.0",
+  "vectors": [
+    {
+      "name": "canonical-empty-object",
+      "command": "canonical_json",
+      "input": {
+        "value": {},
+        "omittedFields": []
+      },
+      "expected": {
+        "ok": true,
+        "canonicalJson": "{}",
+        "canonicalUtf8Base64": "e30="
+      }
+    },
+    {
+      "name": "consent-self-grant-rejected",
+      "command": "validate_core",
+      "input": {
+        "schema": "consent",
+        "value": {
+          "id": "99000000-0000-4000-8000-000000000001",
+          "subjectEntityId": "99000000-0000-4000-8000-000000000002",
+          "granteeEntityId": "99000000-0000-4000-8000-000000000002",
+          "purpose": "hospitality.personalization",
+          "scopes": ["hospitality.seating"],
+          "state": "active",
+          "grantedAt": "2026-08-10T00:00:00.000Z",
+          "expiresAt": "2026-08-11T00:00:00.000Z"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "errorCode": "INVALID_BINDING"
+      }
+    },
+    {
+      "name": "wallet-duplicate-scope-rejected",
+      "command": "validate_core",
+      "input": {
+        "schema": "wallet-connect-request",
+        "value": {
+          "profileVersion": "0.1.0-draft.1",
+          "id": "99000000-0000-4000-8000-000000000003",
+          "requesterEntityId": "99000000-0000-4000-8000-000000000004",
+          "requesterName": "Example Service",
+          "requesterOrigin": "https://service.example",
+          "callbackUri": "https://service.example/exp/presentation",
+          "purpose": "hospitality.personalization",
+          "requestedScopes": ["hospitality.seating", "hospitality.seating"],
+          "requestedOperations": ["personalize"],
+          "prohibitedReuse": ["resale"],
+          "nonce": "core-conformance-wallet-nonce",
+          "issuedAt": "2026-08-10T00:00:00.000Z",
+          "expiresAt": "2026-08-10T00:05:00.000Z",
+          "signature": {
+            "algorithm": "Ed25519",
+            "keyId": "service-key",
+            "value": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          }
+        }
+      },
+      "expected": {
+        "ok": false,
+        "errorCode": "DUPLICATE_SCOPE"
+      }
+    },
+    {
+      "name": "authority-duplicate-operation-rejected",
+      "command": "validate_core",
+      "input": {
+        "schema": "node-authority-grant",
+        "value": {
+          "grantId": "99000000-0000-4000-8000-000000000005",
+          "issuerEntityId": "99000000-0000-4000-8000-000000000006",
+          "subjectNodeId": "example-node",
+          "operations": ["catalog:discover", "catalog:discover"],
+          "state": "active",
+          "validFrom": "2026-08-10T00:00:00.000Z",
+          "expiresAt": "2026-08-11T00:00:00.000Z"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "errorCode": "DUPLICATE_OPERATION"
+      }
+    },
+    {
+      "name": "proposal-identical-parties-rejected",
+      "command": "validate_core",
+      "input": {
+        "schema": "connection-proposal",
+        "value": {
+          "id": "99000000-0000-4000-8000-000000000007",
+          "evaluationId": "99000000-0000-4000-8000-000000000008",
+          "purpose": "hospitality.personalization",
+          "initiatorEntityId": "99000000-0000-4000-8000-000000000009",
+          "counterpartyEntityId": "99000000-0000-4000-8000-000000000009",
+          "requestedDisclosureScopes": ["hospitality.seating"],
+          "state": "proposed",
+          "createdAt": "2026-08-10T00:00:00.000Z",
+          "expiresAt": "2026-08-11T00:00:00.000Z"
+        }
+      },
+      "expected": {
+        "ok": false,
+        "errorCode": "INVALID_BINDING"
+      }
+    }
+  ]
+}

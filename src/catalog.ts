@@ -3,15 +3,10 @@
  * Purpose: Defines privacy-safe registration and discovery across independently operated catalogs.
  */
 import { z } from "zod";
+import { signatureReferenceSchema } from "./signing.js";
 
 export const EXP_CATALOG_VERSION = "0.1.0-draft.1" as const;
-
-export const signatureReferenceSchema = z.object({
-  algorithm: z.string().min(1).max(100),
-  keyId: z.string().min(1).max(500),
-  signature: z.string().min(16).max(4096),
-  signedAt: z.string().datetime(),
-});
+export { signatureReferenceSchema };
 
 /** Advertises one independently operated discovery catalog. */
 export const catalogDescriptorSchema = z.object({
@@ -54,6 +49,24 @@ export const catalogRegistrationSchema = z.object({
   expiresAt: z.string().datetime(),
   withdrawnAt: z.string().datetime().optional(),
   registrationSignature: signatureReferenceSchema,
+}).superRefine((registration, context) => {
+  if (Date.parse(registration.publishedAt) >= Date.parse(registration.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "registration expiry must follow publication" });
+  }
+  if (registration.state === "withdrawn" && registration.withdrawnAt === undefined) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["withdrawnAt"], message: "withdrawn registrations require withdrawnAt" });
+  }
+  if (registration.state !== "withdrawn" && registration.withdrawnAt !== undefined) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["withdrawnAt"], message: "only withdrawn registrations may have withdrawnAt" });
+  }
+  if (registration.withdrawnAt !== undefined
+    && (Date.parse(registration.withdrawnAt) < Date.parse(registration.publishedAt)
+      || Date.parse(registration.withdrawnAt) > Date.parse(registration.expiresAt))) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["withdrawnAt"], message: "withdrawal must fall within registration lifetime" });
+  }
+  if (new Set(registration.discoveryTags).size !== registration.discoveryTags.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["discoveryTags"], message: "discovery tags must be unique" });
+  }
 });
 
 /** Requests bounded discovery from one catalog and, optionally, its peers. */
@@ -80,6 +93,15 @@ export const signedCatalogDiscoveryQuerySchema = catalogDiscoveryQuerySchema.ext
   nonce: z.string().min(16).max(256),
   expiresAt: z.string().datetime(),
   requestSignature: signatureReferenceSchema,
+}).superRefine((query, context) => {
+  if (Date.parse(query.createdAt) >= Date.parse(query.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "query expiry must follow creation" });
+  }
+  if (new Set(query.acceptedProfileIds).size !== query.acceptedProfileIds.length
+    || new Set(query.desiredEntityKinds).size !== query.desiredEntityKinds.length
+    || new Set(query.federation.visitedCatalogIds).size !== query.federation.visitedCatalogIds.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["federation", "visitedCatalogIds"], message: "query collections must be unique" });
+  }
 });
 
 /** Returns only enough metadata to request an authorized, purpose-specific view. */

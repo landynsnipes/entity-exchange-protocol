@@ -16,6 +16,8 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from jsonschema import Draft7Validator, FormatChecker
 
+from canonical_json import CanonicalJsonError, canonical_json, canonical_json_bytes, signed_payload_bytes
+
 
 class ConformanceError(Exception):
     """Expected protocol rejection with a stable conformance error code."""
@@ -23,23 +25,6 @@ class ConformanceError(Exception):
     def __init__(self, code: str) -> None:
         super().__init__(code)
         self.code = code
-
-
-def canonical(value: object) -> bytes:
-    def sorted_value(entry: object) -> object:
-        if isinstance(entry, list):
-            return [sorted_value(item) for item in entry]
-        if isinstance(entry, dict):
-            # EXP's draft canonical JSON uses JavaScript localeCompare semantics. Case-folding
-            # reproduces its ordering for protocol ASCII keys, including camel-case collisions.
-            return {key: sorted_value(entry[key]) for key in sorted(entry, key=lambda item: item.casefold())}
-        return entry
-
-    return json.dumps(sorted_value(value), separators=(",", ":"), ensure_ascii=False).encode("utf-8")
-
-
-def without(value: dict[str, Any], keys: set[str]) -> dict[str, Any]:
-    return {key: entry for key, entry in value.items() if key not in keys}
 
 
 def parse_time(value: str) -> datetime:
@@ -68,6 +53,7 @@ class Adapter:
     """Stateful only for nonce replay detection; all trust input is explicit."""
 
     def __init__(self, schema_directory: Path) -> None:
+        self.schema_directory = schema_directory
         descriptor_schema = json.loads((schema_directory / "node-descriptor.schema.json").read_text(encoding="utf-8"))
         self.descriptor_validator = Draft7Validator(descriptor_schema, format_checker=FormatChecker())
         self.proposal_validator = self._validator(schema_directory, "connection-proposal.schema.json")
@@ -75,6 +61,12 @@ class Adapter:
         self.notification_validator = self._validator(schema_directory, "standing-match-notification.schema.json")
         self.release_validator = self._validator(schema_directory, "disclosure-release.schema.json")
         self.invalidation_validator = self._validator(schema_directory, "standing-match-invalidation.schema.json")
+        self.core_validators = {
+            "consent": self._validator(schema_directory, "consent.schema.json"),
+            "wallet-connect-request": self._validator(schema_directory, "wallet-connect-request.schema.json"),
+            "node-authority-grant": self._validator(schema_directory, "node-authority-grant.schema.json"),
+            "connection-proposal": self._validator(schema_directory, "connection-proposal.schema.json"),
+        }
         self.nonces: set[str] = set()
         self.proposals: dict[str, dict[str, Any]] = {}
         self.decisions: dict[str, list[dict[str, Any]]] = {}
@@ -90,6 +82,12 @@ class Adapter:
         )
 
     def execute(self, command: str, value: dict[str, Any]) -> dict[str, Any]:
+        if command == "canonical_json":
+            return self.canonical_json_vector(value)
+        if command == "validate_core":
+            return self.validate_core(value)
+        if command == "build_wallet_presentation":
+            return self.build_wallet_presentation(value)
         if command == "verify_descriptor_key":
             return self.verify_descriptor_key(value)
         if command == "verify_transport":
@@ -103,6 +101,53 @@ class Adapter:
         if command == "receive_invalidation":
             return self.receive_invalidation(value)
         raise ConformanceError("UNKNOWN_COMMAND")
+
+    @staticmethod
+    def canonical_json_vector(value: dict[str, Any]) -> dict[str, Any]:
+        omitted_fields = set(value.get("omittedFields", []))
+        raw_value = value["value"]
+        if isinstance(raw_value, dict):
+            payload: Any = {key: item for key, item in raw_value.items() if key not in omitted_fields}
+        elif omitted_fields:
+            raise CanonicalJsonError("Canonical JSON field omission requires an object.")
+        else:
+            payload = raw_value
+        return {
+            "canonicalJson": canonical_json(payload),
+            "canonicalUtf8Base64": base64.b64encode(canonical_json_bytes(payload)).decode("ascii"),
+        }
+
+    def validate_core(self, value: dict[str, Any]) -> dict[str, Any]:
+        schema_name = value["schema"]
+        validator = self.core_validators.get(schema_name)
+        if validator is None:
+            raise ConformanceError("UNKNOWN_CORE_SCHEMA")
+        record = value["value"]
+        if next(validator.iter_errors(record), None) is not None:
+            raise ConformanceError("INVALID_CORE_SCHEMA")
+        if schema_name == "consent" and record["subjectEntityId"] == record["granteeEntityId"]:
+            raise ConformanceError("INVALID_BINDING")
+        if schema_name == "wallet-connect-request":
+            if len(set(record["requestedScopes"])) != len(record["requestedScopes"]):
+                raise ConformanceError("DUPLICATE_SCOPE")
+            if len(set(record["requestedOperations"])) != len(record["requestedOperations"]):
+                raise ConformanceError("DUPLICATE_OPERATION")
+        if schema_name == "node-authority-grant" and len(set(record["operations"])) != len(record["operations"]):
+            raise ConformanceError("DUPLICATE_OPERATION")
+        if schema_name == "connection-proposal":
+            if record["initiatorEntityId"] == record["counterpartyEntityId"]:
+                raise ConformanceError("INVALID_BINDING")
+            if len(set(record.get("requestedDisclosureScopes", []))) != len(record.get("requestedDisclosureScopes", [])):
+                raise ConformanceError("DUPLICATE_SCOPE")
+        return {"accepted": True}
+
+    def build_wallet_presentation(self, value: dict[str, Any]) -> dict[str, Any]:
+        from exp_wallet import WalletError, build_presentation
+
+        try:
+            return {"presentation": build_presentation(value, self.schema_directory)}
+        except WalletError as error:
+            raise ConformanceError(str(error)) from None
 
     def verify_descriptor_key(self, value: dict[str, Any]) -> dict[str, Any]:
         descriptor = value["descriptor"]
@@ -119,12 +164,20 @@ class Adapter:
             raise ConformanceError("DESCRIPTOR_ORIGIN_MISMATCH")
         if parse_time(descriptor["expiresAt"]) <= now:
             raise ConformanceError("DESCRIPTOR_EXPIRED")
+        if descriptor["descriptorSignature"]["signedAt"] != descriptor["updatedAt"]:
+            raise ConformanceError("INVALID_DESCRIPTOR_TIMESTAMP")
+        if parse_time(descriptor["updatedAt"]) < parse_time(descriptor["createdAt"]):
+            raise ConformanceError("INVALID_DESCRIPTOR_TIMESTAMP")
+        if len({key["keyId"] for key in descriptor["keys"]}) != len(descriptor["keys"]):
+            raise ConformanceError("DUPLICATE_IDENTIFIER")
+        if any(len(set(grant["operations"])) != len(grant["operations"]) for grant in descriptor["authorityGrants"]):
+            raise ConformanceError("DUPLICATE_OPERATION")
         signing_key_id = descriptor["descriptorSignature"]["keyId"]
         signing_key_pem = anchor["rootPublicKeyPem"]
         if signing_key_id != anchor["rootKeyId"]:
             signing_key_pem = self.verify_root_transition(descriptor, anchor, now)
         verify_signature(
-            canonical(without(descriptor, {"descriptorSignature"})),
+            signed_payload_bytes(descriptor, {"descriptorSignature"}),
             signing_key_pem,
             descriptor["descriptorSignature"]["signature"],
             "INVALID_DESCRIPTOR_SIGNATURE",
@@ -156,7 +209,7 @@ class Adapter:
             raise ConformanceError("INVALID_ROOT_TRANSITION")
         if not (parse_time(transition["effectiveAt"]) <= now < parse_time(transition["expiresAt"])):
             raise ConformanceError("INVALID_ROOT_TRANSITION")
-        payload = canonical(without(transition, {"previousRootSignature", "nextRootSignature"}))
+        payload = signed_payload_bytes(transition, {"previousRootSignature", "nextRootSignature"})
         verify_signature(payload, anchor["rootPublicKeyPem"], transition["previousRootSignature"]["signature"], "INVALID_ROOT_TRANSITION")
         verify_signature(payload, transition["nextRootPublicKeyPem"], transition["nextRootSignature"]["signature"], "INVALID_ROOT_TRANSITION")
         return transition["nextRootPublicKeyPem"]
@@ -169,7 +222,7 @@ class Adapter:
             raise ConformanceError("STALE_TRANSPORT_SIGNATURE")
         if headers["nonce"] in self.nonces:
             raise ConformanceError("NONCE_REPLAY")
-        payload = canonical({
+        payload = canonical_json_bytes({
             "method": value["method"].upper(), "path": value["path"], "body": value["body"],
             "nodeId": headers["nodeId"], "nonce": headers["nonce"], "signedAt": headers["signedAt"],
         })
@@ -192,15 +245,27 @@ class Adapter:
     def receive_proposal(self, value: dict[str, Any]) -> dict[str, Any]:
         proposal = value["proposal"]
         notification = value["notification"]
+        now = parse_time(value.get("now", proposal["createdAt"]))
         self._validate(self.proposal_validator, proposal, "INVALID_PROPOSAL_SCHEMA")
         self._validate(self.notification_validator, notification, "INVALID_NOTIFICATION_SCHEMA")
+        if parse_time(proposal["expiresAt"]) <= now:
+            raise ConformanceError("PROPOSAL_EXPIRED")
+        if parse_time(notification["expiresAt"]) <= now:
+            raise ConformanceError("NOTIFICATION_EXPIRED")
         if notification["proposalId"] != proposal["id"] or notification["purpose"] != proposal["purpose"]:
             raise ConformanceError("PROPOSAL_BINDING_MISMATCH")
         if notification["recipientEntityId"] not in {proposal["initiatorEntityId"], proposal["counterpartyEntityId"]}:
             raise ConformanceError("PROPOSAL_BINDING_MISMATCH")
+        if proposal["initiatorEntityId"] == proposal["counterpartyEntityId"]:
+            raise ConformanceError("INVALID_BINDING")
+        if len(set(proposal.get("requestedDisclosureScopes", []))) != len(proposal.get("requestedDisclosureScopes", [])):
+            raise ConformanceError("DUPLICATE_SCOPE")
         existing = self.proposals.get(proposal["id"])
         if existing and existing != proposal:
             raise ConformanceError("PROPOSAL_CONFLICT")
+        existing_notification = self.notifications.get(proposal["id"])
+        if existing_notification and existing_notification != notification:
+            raise ConformanceError("NOTIFICATION_CONFLICT")
         self.proposals[proposal["id"]] = proposal
         self.notifications[proposal["id"]] = notification
         self.decisions.setdefault(proposal["id"], [])
@@ -209,14 +274,23 @@ class Adapter:
     def record_decision(self, value: dict[str, Any]) -> dict[str, Any]:
         decision = value["decision"]
         self._validate(self.decision_validator, decision, "INVALID_DECISION_SCHEMA")
+        if len(set(decision.get("approvedDisclosureScopes", []))) != len(decision.get("approvedDisclosureScopes", [])):
+            raise ConformanceError("DUPLICATE_SCOPE")
         proposal = self.proposals.get(decision["proposalId"])
         if proposal is None:
             raise ConformanceError("PROPOSAL_NOT_FOUND")
+        now = parse_time(value["now"])
+        if parse_time(proposal["expiresAt"]) <= now:
+            raise ConformanceError("PROPOSAL_EXPIRED")
+        if parse_time(decision["decidedAt"]) > now:
+            raise ConformanceError("DECISION_TIMESTAMP_INVALID")
         if proposal["id"] in {item["proposalId"] for item in self.invalidations.values()}:
             raise ConformanceError("PROPOSAL_INVALIDATED")
         expected_actor = proposal["initiatorEntityId"] if decision["actorSide"] == "initiator" else proposal["counterpartyEntityId"]
         if decision["actorEntityId"] != expected_actor:
             raise ConformanceError("DECISION_ACTOR_MISMATCH")
+        if not set(decision.get("approvedDisclosureScopes", [])).issubset(proposal["requestedDisclosureScopes"]):
+            raise ConformanceError("DISCLOSURE_SCOPE_EXCEEDS_REQUEST")
         decisions = self.decisions[proposal["id"]]
         if any(item["actorEntityId"] == decision["actorEntityId"] for item in decisions):
             raise ConformanceError("DUPLICATE_ACTOR_DECISION")
@@ -244,7 +318,10 @@ class Adapter:
 
     def receive_invalidation(self, value: dict[str, Any]) -> dict[str, Any]:
         invalidation = value["invalidation"]
+        now = parse_time(value.get("now", invalidation["invalidatedAt"]))
         self._validate(self.invalidation_validator, invalidation, "INVALID_INVALIDATION_SCHEMA")
+        if parse_time(invalidation["invalidatedAt"]) > now:
+            raise ConformanceError("INVALIDATION_TIMESTAMP_INVALID")
         proposal = self.proposals.get(invalidation["proposalId"])
         if proposal is None:
             raise ConformanceError("PROPOSAL_NOT_FOUND")
@@ -270,12 +347,20 @@ def main() -> None:
     arguments = parser.parse_args()
     adapter = Adapter(arguments.schemas)
     for line in sys.stdin:
-        request: dict[str, Any] = json.loads(line)
+        if len(line.encode("utf-8")) > 1_048_576:
+            response = {"id": None, "ok": False, "errorCode": "RESOURCE_PAYLOAD_TOO_LARGE"}
+            sys.stdout.write(json.dumps(response, separators=(",", ":")) + "\n")
+            sys.stdout.flush()
+            continue
+        request: dict[str, Any] = {}
         try:
+            request: dict[str, Any] = json.loads(line)
             result = adapter.execute(request["command"], request["input"])
             response = {"id": request["id"], "ok": True, "result": result}
         except ConformanceError as error:
-            response = {"id": request["id"], "ok": False, "errorCode": error.code}
+            response = {"id": request.get("id"), "ok": False, "errorCode": error.code}
+        except CanonicalJsonError as error:
+            response = {"id": request.get("id"), "ok": False, "errorCode": str(error)}
         except Exception:
             response = {"id": request.get("id"), "ok": False, "errorCode": "INTERNAL_ERROR"}
         sys.stdout.write(json.dumps(response, separators=(",", ":")) + "\n")

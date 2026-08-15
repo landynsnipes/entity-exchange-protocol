@@ -3,6 +3,7 @@
  * Purpose: Publishes stable machine-readable schemas from the protocol source of truth.
  */
 import { mkdir, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { zodToJsonSchema } from "zod-to-json-schema";
@@ -62,9 +63,11 @@ import {
   walletConsentReceiptSchema,
   walletPresentationSchema,
 } from "./wallet.js";
+import { EXP_SUPPORTED_VERSIONS, versionCapabilitiesSchema } from "./compatibility.js";
+import { hospitalityIntentSchema, hospitalityServiceOfferSchema } from "./hospitality.js";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const outputDirectory = resolve(packageRoot, "generated");
+const outputDirectory = resolve(process.env.EXP_SCHEMA_OUTPUT_DIR ?? resolve(packageRoot, "schemas"));
 
 /** Writes each public contract as a stable, reviewable JSON Schema file. */
 async function generateSchemas(): Promise<void> {
@@ -114,12 +117,25 @@ async function generateSchemas(): Promise<void> {
     "wallet-presentation": walletPresentationSchema,
     match: matchResultSchema,
     "introduction-decision": introductionDecisionSchema,
+    "version-capabilities": versionCapabilitiesSchema,
+    "hospitality-intent": hospitalityIntentSchema,
+    "hospitality-service-offer": hospitalityServiceOfferSchema,
   };
 
+  const generatedFiles: Record<string, string> = {};
   for (const [name, schema] of Object.entries(schemas)) {
     const jsonSchema = zodToJsonSchema(schema, { name, target: "jsonSchema7" });
-    await writeFile(resolve(outputDirectory, `${name}.schema.json`), `${JSON.stringify(jsonSchema, null, 2)}\n`);
+    const contents = `${JSON.stringify(jsonSchema, null, 2)}\n`;
+    const fileName = `${name}.schema.json`;
+    generatedFiles[fileName] = createHash("sha256").update(contents).digest("hex");
+    await writeFile(resolve(outputDirectory, fileName), contents);
   }
+  await writeFile(resolve(outputDirectory, "manifest.json"), `${JSON.stringify({
+    manifestVersion: "0.1.0",
+    canonicalization: "RFC8785-JCS",
+    supportedVersions: EXP_SUPPORTED_VERSIONS,
+    files: generatedFiles,
+}, null, 2)}\n`);
 }
 
 await generateSchemas();

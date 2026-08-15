@@ -48,6 +48,14 @@ export const walletConnectRequestSchema = z.object({
   issuedAt: z.string().datetime(),
   expiresAt: z.string().datetime(),
   signature: walletSignatureSchema,
+}).superRefine((request, context) => {
+  if (Date.parse(request.issuedAt) >= Date.parse(request.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "request expiry must follow issuance" });
+  }
+  if (new Set(request.requestedScopes).size !== request.requestedScopes.length
+    || new Set(request.requestedOperations).size !== request.requestedOperations.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["requestedScopes"], message: "requested scopes and operations must be unique" });
+  }
 });
 
 export const walletConsentReceiptSchema = z.object({
@@ -63,6 +71,14 @@ export const walletConsentReceiptSchema = z.object({
   containsRawContext: z.literal(false),
   approvedAt: z.string().datetime(),
   expiresAt: z.string().datetime(),
+}).superRefine((consent, context) => {
+  if (Date.parse(consent.approvedAt) >= Date.parse(consent.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "consent expiry must follow approval" });
+  }
+  if (new Set(consent.approvedScopes).size !== consent.approvedScopes.length
+    || new Set(consent.approvedOperations).size !== consent.approvedOperations.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["approvedScopes"], message: "approved scopes and operations must be unique" });
+  }
 });
 
 export const walletPresentationSchema = z.object({
@@ -77,6 +93,10 @@ export const walletPresentationSchema = z.object({
   issuedAt: z.string().datetime(),
   expiresAt: z.string().datetime(),
   signature: walletSignatureSchema,
+}).superRefine((presentation, context) => {
+  if (Date.parse(presentation.issuedAt) >= Date.parse(presentation.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "presentation expiry must follow issuance" });
+  }
 });
 
 export const standardWalletCapabilityProfiles = {

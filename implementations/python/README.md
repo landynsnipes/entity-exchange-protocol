@@ -1,7 +1,7 @@
 # Independent Python EXP adapter
 
-This adapter is intentionally authored without imports from the TypeScript protocol package, private
-gateway, matching engine, or proprietary product code. It consumes the exported JSON Schemas and
+This adapter is intentionally authored without imports from the TypeScript protocol package,
+application gateway, matching engine, or proprietary product code. It consumes the exported JSON Schemas and
 implements the EXP Trust/transport conformance JSONL boundary in Python.
 
 `exp_adapter.py` remains the small JSONL conformance candidate. `exp_http_node.py` promotes those
@@ -17,5 +17,6 @@ dual-signed transition from the configured anchor.
 
 Run through the public conformance suite with `npm run conformance`.
 
-The private reference repository runs the live TypeScript/Python standing proof. The Python node is
-public; the TypeScript product gateway and test harness remain private during incubation.
+The public repository intentionally does not claim live standing interoperability, production
+federation, or certification. Use the JSONL conformance runner and published schemas as the
+reproducible interoperability boundary.

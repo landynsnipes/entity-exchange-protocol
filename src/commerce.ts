@@ -25,12 +25,26 @@ export const productOfferSchema = z.object({
   visibility: z.enum(["consented", "public"]).default("public"),
   createdAt: z.string().datetime(),
   expiresAt: z.string().datetime().optional(),
+}).superRefine((offer, context) => {
+  if (offer.expiresAt !== undefined && Date.parse(offer.createdAt) >= Date.parse(offer.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "offer expiry must follow creation" });
+  }
+  if (new Set(offer.evidenceReferences).size !== offer.evidenceReferences.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["evidenceReferences"], message: "evidence references must be unique" });
+  }
 });
 
 /** Narrows a neutral intent to product discovery while retaining the core wire semantics. */
 export const commerceIntentSchema = intentSchema.extend({
   commercePurpose: z.enum(["product_discovery", "purchase_consideration", "provider_audience_discovery"]),
   desiredEntityKinds: z.array(z.enum(["product", "consumer_segment"])).min(1),
+}).superRefine((intent, context) => {
+  if (Date.parse(intent.createdAt) >= Date.parse(intent.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "intent expiry must follow creation" });
+  }
+  if (new Set(intent.desiredEntityKinds).size !== intent.desiredEntityKinds.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["desiredEntityKinds"], message: "entity kinds must be unique" });
+  }
 });
 
 export type ProductOffer = z.infer<typeof productOfferSchema>;

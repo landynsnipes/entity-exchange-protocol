@@ -4,6 +4,8 @@
  */
 import { z } from "zod";
 import { entityViewSchema, type EntityView } from "./entity-model.js";
+import { ExpError, parseRetryAfter } from "./errors.js";
+import { signedRecordBytes } from "./signing.js";
 import {
   EXP_WALLET_PROFILE_VERSION,
   validateWalletPresentation,
@@ -14,27 +16,47 @@ import {
 } from "./wallet.js";
 
 export const walletSdkErrorCodeSchema = z.enum([
+  "REQUEST_CANCELLED",
   "INVALID_REQUEST_URL",
   "INSECURE_TRANSPORT",
   "REQUEST_TIMEOUT",
+  "DEADLINE_EXCEEDED",
+  "TRANSPORT_FAILURE",
+  "INVALID_RESPONSE",
   "REQUEST_REJECTED",
   "INVALID_REQUEST_SIGNATURE",
   "ORIGIN_MISMATCH",
   "CALLBACK_ORIGIN_MISMATCH",
   "APPROVAL_EXCEEDS_REQUEST",
   "INVALID_PRESENTATION",
+  "INVALID_TIMEOUT",
+  "INVALID_DEADLINE",
 ]);
 
 export class WalletSdkError extends Error {
-  public constructor(public readonly code: z.infer<typeof walletSdkErrorCodeSchema>, message: string) {
-    super(message);
+  public readonly retryable: boolean;
+  public readonly status: number | undefined;
+  public readonly requestId: string | undefined;
+  public readonly retryAfterMs: number | undefined;
+
+  public constructor(
+    public readonly code: z.infer<typeof walletSdkErrorCodeSchema>,
+    message: string,
+    options: { readonly retryable?: boolean | undefined; readonly status?: number | undefined; readonly requestId?: string | undefined; readonly retryAfterMs?: number | undefined; readonly cause?: unknown } = {},
+  ) {
+    super(message, options.cause === undefined ? undefined : { cause: options.cause });
     this.name = "WalletSdkError";
+    this.retryable = options.retryable ?? new ExpError(code, message, options).retryable;
+    this.status = options.status;
+    this.requestId = options.requestId;
+    this.retryAfterMs = options.retryAfterMs;
   }
 }
 
 export interface WalletFetchResponse {
   readonly ok: boolean;
   readonly status: number;
+  readonly headers?: Readonly<Record<string, string>>;
   json(): Promise<unknown>;
 }
 
@@ -66,26 +88,16 @@ export interface MobileWalletPlatformAdapter {
   scheduleGatewayWakeup(authorizationId: string, notAfter: string): Promise<void>;
 }
 
-function canonicalJson(value: unknown): string {
-  if (value === null || typeof value !== "object") {
-    const encoded = JSON.stringify(value);
-    if (encoded === undefined) throw new WalletSdkError("INVALID_PRESENTATION", "Unsupported canonical signing value.");
-    return encoded;
-  }
-  if (Array.isArray(value)) return `[${value.map((item) => canonicalJson(item)).join(",")}]`;
-  const entries = Object.entries(value as Record<string, unknown>).sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0);
-  return `{${entries.map(([key, item]) => `${JSON.stringify(key)}:${canonicalJson(item)}`).join(",")}}`;
-}
-
-function withoutSignature(record: { signature: unknown }): Record<string, unknown> {
-  const { signature, ...payload } = record;
-  void signature;
-  return payload;
-}
-
-/** Returns UTF-8 JCS bytes for a signed EXP wallet record with its signature omitted. */
+/** Returns UTF-8 RFC 8785 bytes for a signed EXP wallet record with its signature omitted. */
 export function walletSigningBytes(record: { signature: unknown }): Uint8Array {
-  return new TextEncoder().encode(canonicalJson(withoutSignature(record)));
+  try {
+    return signedRecordBytes(record as Readonly<Record<string, unknown>>, ["signature"]);
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new WalletSdkError("INVALID_PRESENTATION", error.message);
+    }
+    throw error;
+  }
 }
 
 function loopback(hostname: string): boolean {
@@ -102,6 +114,12 @@ export interface ExpWalletSdkOptions {
   readonly allowLoopbackHttpForProof?: boolean;
 }
 
+export interface WalletRequestOptions {
+  readonly signal?: AbortSignal;
+  readonly deadlineAt?: string;
+  readonly requestId?: string;
+}
+
 export interface WalletApproval {
   readonly principalEntityId: string;
   readonly approvedScopes: readonly string[];
@@ -109,33 +127,107 @@ export interface WalletApproval {
   readonly expiresAt: string;
 }
 
+type AbortReason = "caller" | "timeout" | "deadline";
+
+interface ManagedRequest {
+  readonly signal: AbortSignal;
+  readonly reason: () => AbortReason | undefined;
+  readonly cleanup: () => void;
+}
+
+function headerValue(response: WalletFetchResponse, name: string): string | undefined {
+  const target = name.toLowerCase();
+  return Object.entries(response.headers ?? {}).find(([key]) => key.toLowerCase() === target)?.[1];
+}
+
+function managedRequest(
+  options: WalletRequestOptions,
+  defaultTimeoutMs: number,
+  now: string,
+): ManagedRequest {
+  if (options.signal?.aborted) {
+    throw new WalletSdkError("REQUEST_CANCELLED", "The wallet request was cancelled.", { requestId: options.requestId });
+  }
+  const timeoutMs = defaultTimeoutMs;
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+    throw new WalletSdkError("INVALID_TIMEOUT", "Wallet request timeout must be a positive finite number.", { requestId: options.requestId });
+  }
+  let deadlineMs: number | undefined;
+  if (options.deadlineAt !== undefined) {
+    deadlineMs = Date.parse(options.deadlineAt);
+    if (Number.isNaN(deadlineMs)) {
+      throw new WalletSdkError("INVALID_DEADLINE", "Wallet request deadline must be an ISO timestamp.", { requestId: options.requestId });
+    }
+    const nowMs = Date.parse(now);
+    if (Number.isNaN(nowMs) || deadlineMs <= nowMs) {
+      throw new WalletSdkError("DEADLINE_EXCEEDED", "The wallet request deadline has elapsed.", { requestId: options.requestId });
+    }
+    deadlineMs -= nowMs;
+  }
+  const deadlineTimerMs = deadlineMs === undefined ? timeoutMs : Math.min(timeoutMs, deadlineMs);
+  const controller = new AbortController();
+  let abortReason: AbortReason | undefined;
+  const onCallerAbort = (): void => {
+    abortReason = "caller";
+    controller.abort(options.signal?.reason);
+  };
+  options.signal?.addEventListener("abort", onCallerAbort, { once: true });
+  const timer = setTimeout(() => {
+    abortReason = deadlineMs !== undefined && deadlineMs <= timeoutMs ? "deadline" : "timeout";
+    controller.abort();
+  }, deadlineTimerMs);
+  return {
+    signal: controller.signal,
+    reason: () => abortReason,
+    cleanup: () => {
+      clearTimeout(timer);
+      options.signal?.removeEventListener("abort", onCallerAbort);
+    },
+  };
+}
+
 /** Implements the outbound-only portion shared by browser wallets and native mobile wrappers. */
 export class ExpWalletSdk {
   public constructor(private readonly options: ExpWalletSdkOptions) {}
 
-  public async retrieveRequest(requestUri: string): Promise<WalletConnectRequest> {
+  public async retrieveRequest(requestUri: string, requestOptions: WalletRequestOptions = {}): Promise<WalletConnectRequest> {
     let url: URL;
     try { url = new URL(requestUri); }
     catch { throw new WalletSdkError("INVALID_REQUEST_URL", "Connect request URI is invalid."); }
     if (url.protocol !== "https:" && !(this.options.allowLoopbackHttpForProof === true && loopback(url.hostname)))
       throw new WalletSdkError("INSECURE_TRANSPORT", "Connect requests require HTTPS outside explicit loopback proof mode.");
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), this.options.timeoutMs ?? 5_000);
-    let response: WalletFetchResponse;
-    try { response = await this.options.fetch(url.toString(), { method: "GET", signal: controller.signal }); }
-    catch (error) {
-      if (controller.signal.aborted) throw new WalletSdkError("REQUEST_TIMEOUT", "Connect request timed out.");
-      throw error;
-    } finally { clearTimeout(timeout); }
-    if (!response.ok) throw new WalletSdkError("REQUEST_REJECTED", `Connect request failed with status ${response.status}.`);
-    const request = walletConnectRequestSchema.parse(await response.json());
-    if (new URL(request.requesterOrigin).origin !== url.origin)
-      throw new WalletSdkError("ORIGIN_MISMATCH", "Signed requester origin differs from the request endpoint.");
-    if (new URL(request.callbackUri).origin !== request.requesterOrigin)
-      throw new WalletSdkError("CALLBACK_ORIGIN_MISMATCH", "Callback origin differs from the signed requester origin.");
-    if (!(await this.options.verifier.verify(request, walletSigningBytes(request))))
-      throw new WalletSdkError("INVALID_REQUEST_SIGNATURE", "Connect request signature is not trusted.");
-    return request;
+    const request = managedRequest(requestOptions, this.options.timeoutMs ?? 5_000, this.options.now());
+    try {
+      const response = await this.options.fetch(url.toString(), { method: "GET", signal: request.signal });
+      if (!response.ok) throw new WalletSdkError("REQUEST_REJECTED", `Connect request failed with status ${response.status}.`, {
+        status: response.status,
+        requestId: requestOptions.requestId,
+        retryAfterMs: parseRetryAfter(headerValue(response, "retry-after")),
+      });
+      let parsedRequest: WalletConnectRequest;
+      try {
+        parsedRequest = walletConnectRequestSchema.parse(await response.json());
+      } catch (error) {
+        throw new WalletSdkError("INVALID_RESPONSE", "Connect endpoint returned an invalid request.", { requestId: requestOptions.requestId, cause: error });
+      }
+      if (new URL(parsedRequest.requesterOrigin).origin !== url.origin)
+        throw new WalletSdkError("ORIGIN_MISMATCH", "Signed requester origin differs from the request endpoint.");
+      if (new URL(parsedRequest.callbackUri).origin !== parsedRequest.requesterOrigin)
+        throw new WalletSdkError("CALLBACK_ORIGIN_MISMATCH", "Callback origin differs from the signed requester origin.");
+      if (!(await this.options.verifier.verify(parsedRequest, walletSigningBytes(parsedRequest))))
+        throw new WalletSdkError("INVALID_REQUEST_SIGNATURE", "Connect request signature is not trusted.");
+      return parsedRequest;
+    } catch (error) {
+      const reason = request.reason();
+      if (error instanceof WalletSdkError && reason === undefined) throw error;
+      if (reason === "caller") throw new WalletSdkError("REQUEST_CANCELLED", "The wallet request was cancelled.", { requestId: requestOptions.requestId, cause: error });
+      if (reason === "deadline") throw new WalletSdkError("DEADLINE_EXCEEDED", "The wallet request deadline elapsed.", { requestId: requestOptions.requestId, cause: error });
+      if (reason === "timeout") throw new WalletSdkError("REQUEST_TIMEOUT", "Connect request timed out.", { requestId: requestOptions.requestId, cause: error });
+      if (error instanceof WalletSdkError) throw error;
+      throw new WalletSdkError("TRANSPORT_FAILURE", "The connect request could not be completed.", { requestId: requestOptions.requestId, cause: error });
+    } finally {
+      request.cleanup();
+    }
   }
 
   public async createPresentation(requestInput: unknown, viewInput: unknown, approval: WalletApproval): Promise<WalletPresentation> {
@@ -164,18 +256,35 @@ export class ExpWalletSdk {
     return walletPresentationSchema.parse({ ...unsignedPresentation, signature: { ...unsignedPresentation.signature, value } });
   }
 
-  public async submitPresentation(request: WalletConnectRequest, presentation: WalletPresentation): Promise<WalletFetchResponse> {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), this.options.timeoutMs ?? 5_000);
+  public async submitPresentation(
+    request: WalletConnectRequest,
+    presentation: WalletPresentation,
+    requestOptions: WalletRequestOptions = {},
+  ): Promise<WalletFetchResponse> {
+    const managed = managedRequest(requestOptions, this.options.timeoutMs ?? 5_000, this.options.now());
+    let response: WalletFetchResponse;
     try {
-      return await this.options.fetch(request.callbackUri, {
+      response = await this.options.fetch(request.callbackUri, {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify(presentation), signal: controller.signal,
+        body: JSON.stringify(presentation), signal: managed.signal,
       });
     } catch (error) {
-      if (controller.signal.aborted) throw new WalletSdkError("REQUEST_TIMEOUT", "Presentation submission timed out.");
-      throw error;
-    } finally { clearTimeout(timeout); }
+      const reason = managed.reason();
+      managed.cleanup();
+      if (reason === "caller") throw new WalletSdkError("REQUEST_CANCELLED", "The wallet request was cancelled.", { requestId: requestOptions.requestId, cause: error });
+      if (reason === "deadline") throw new WalletSdkError("DEADLINE_EXCEEDED", "The wallet request deadline elapsed.", { requestId: requestOptions.requestId, cause: error });
+      if (reason === "timeout") throw new WalletSdkError("REQUEST_TIMEOUT", "Presentation submission timed out.", { requestId: requestOptions.requestId, cause: error });
+      throw new WalletSdkError("TRANSPORT_FAILURE", "The presentation submission could not be completed.", { requestId: requestOptions.requestId, cause: error });
+    }
+    managed.cleanup();
+    if (!response.ok) {
+      throw new WalletSdkError("REQUEST_REJECTED", `Presentation submission failed with status ${response.status}.`, {
+        status: response.status,
+        requestId: requestOptions.requestId,
+        retryAfterMs: parseRetryAfter(headerValue(response, "retry-after")),
+      });
+    }
+    return response;
   }
 }
 

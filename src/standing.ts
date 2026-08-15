@@ -3,7 +3,7 @@
  * Purpose: Defines state-driven discovery, privacy-safe notification, invalidation, and governed disclosure.
  */
 import { z } from "zod";
-import { signatureReferenceSchema } from "./catalog.js";
+import { signatureReferenceSchema } from "./signing.js";
 
 export const EXP_STANDING_VERSION = "0.1.0-draft.1" as const;
 
@@ -41,7 +41,22 @@ export const standingMatchNotificationSchema = z.object({
   createdAt: z.string().datetime(),
   expiresAt: z.string().datetime(),
   invalidatedAt: z.string().datetime().optional(),
-}).strict();
+}).strict().superRefine((notification, context) => {
+  if (Date.parse(notification.createdAt) >= Date.parse(notification.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "notification expiry must follow creation" });
+  }
+  if (notification.state === "invalidated" && notification.invalidatedAt === undefined) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["invalidatedAt"], message: "invalidated notifications require invalidatedAt" });
+  }
+  if (notification.state !== "invalidated" && notification.invalidatedAt !== undefined) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["invalidatedAt"], message: "only invalidated notifications may have invalidatedAt" });
+  }
+  if (notification.invalidatedAt !== undefined
+    && (Date.parse(notification.invalidatedAt) < Date.parse(notification.createdAt)
+      || Date.parse(notification.invalidatedAt) > Date.parse(notification.expiresAt))) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["invalidatedAt"], message: "invalidation must fall within notification lifetime" });
+  }
+});
 
 /** Records why a previously valid standing result can no longer progress. */
 export const standingMatchInvalidationSchema = z.object({

@@ -3,7 +3,7 @@
  * Purpose: Defines signed node descriptors, delegated federation authority, and root rollover.
  */
 import { z } from "zod";
-import { signatureReferenceSchema } from "./catalog.js";
+import { signatureReferenceSchema } from "./signing.js";
 
 export const EXP_TRUST_VERSION = "0.1.0-draft.2" as const;
 

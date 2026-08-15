@@ -13,6 +13,10 @@ export const relationshipIntentSchema = intentSchema.extend({
   desiredEntityKinds: z.array(z.literal("person")).min(1),
   identityDisclosure: z.enum(["after_mutual_interest", "after_mutual_approval"]),
   contactDisclosure: z.literal("after_mutual_approval"),
+}).superRefine((intent, context) => {
+  if (Date.parse(intent.createdAt) >= Date.parse(intent.expiresAt)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ["expiresAt"], message: "intent expiry must follow creation" });
+  }
 });
 
 /** Restricts explanations so sealed compatibility cannot reveal intimate values or dealbreakers. */

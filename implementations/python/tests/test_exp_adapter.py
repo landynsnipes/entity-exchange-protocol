@@ -1,27 +1,67 @@
 """Dependency-light unit checks for the independently authored Python adapter."""
 from __future__ import annotations
 
+import json
+import base64
 import sys
 import tempfile
 import threading
 import unittest
 from pathlib import Path
 
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from jsonschema import Draft7Validator
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from exp_adapter import Adapter, ConformanceError, canonical  # noqa: E402
+from canonical_json import CanonicalJsonError, canonical_json_bytes  # noqa: E402
+from exp_adapter import Adapter, ConformanceError  # noqa: E402
 from exp_http_node import ExpHttpNode, JsonStore, NodeError  # noqa: E402
 
 
 class AdapterUnitTests(unittest.TestCase):
-    def test_canonical_json_sorts_nested_keys(self) -> None:
-        self.assertEqual(canonical({"z": 1, "a": {"y": 2, "b": 3}}), b'{"a":{"b":3,"y":2},"z":1}')
+    def test_resource_limits_reject_oversized_values(self) -> None:
+        with self.assertRaisesRegex(CanonicalJsonError, "RESOURCE_STRING_TOO_LARGE"):
+            canonical_json_bytes("x" * 4_097)
+        with self.assertRaisesRegex(CanonicalJsonError, "RESOURCE_ARRAY_TOO_LARGE"):
+            canonical_json_bytes([None] * 101)
 
-    def test_canonical_json_matches_javascript_camel_case_order(self) -> None:
+    def test_every_committed_schema_is_valid_json_schema(self) -> None:
+        schema_directory = Path(__file__).resolve().parents[3] / "schemas"
+        schema_files = sorted(schema_directory.glob("*.schema.json"))
+        self.assertGreater(len(schema_files), 0)
+        for schema_file in schema_files:
+            Draft7Validator.check_schema(json.loads(schema_file.read_text(encoding="utf-8")))
+
+    def test_canonical_json_sorts_nested_keys(self) -> None:
+        self.assertEqual(canonical_json_bytes({"z": 1, "a": {"y": 2, "b": 3}}), b'{"a":{"b":3,"y":2},"z":1}')
+
+    def test_canonical_json_matches_utf16_key_order(self) -> None:
         self.assertEqual(
-            canonical({"requestSignature": 1, "requesterEntityId": 2, "resultLimit": 3}),
-            b'{"requesterEntityId":2,"requestSignature":1,"resultLimit":3}',
+            canonical_json_bytes({"😀": True, "𐐷": "deseret", "a": None}),
+            '{"a":null,"𐐷":"deseret","😀":true}'.encode("utf-8"),
         )
+
+    def test_canonical_json_matches_committed_signing_vectors(self) -> None:
+        vectors = json.loads(
+            (Path(__file__).resolve().parents[3] / "test-vectors" / "canonical-signing.json").read_text(encoding="utf-8"),
+        )
+        public_key = Ed25519PublicKey.from_public_bytes(
+            base64.urlsafe_b64decode(vectors["publicKeyBase64url"] + "==="),
+        )
+        for vector in vectors["vectors"]:
+            omitted = set(vector["omittedFields"])
+            value = {key: item for key, item in vector["value"].items() if key not in omitted}
+            payload = canonical_json_bytes(value)
+            self.assertEqual(payload.decode("utf-8"), vector["canonicalJson"])
+            self.assertEqual(
+                base64.b64encode(payload).decode("ascii"),
+                vector["canonicalUtf8Base64"],
+            )
+            public_key.verify(
+                base64.urlsafe_b64decode(vector["signatureBase64url"] + "==="),
+                payload,
+            )
 
     def test_transport_policy_restricts_plain_http_to_loopback(self) -> None:
         adapter = Adapter.__new__(Adapter)

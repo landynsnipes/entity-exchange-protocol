@@ -25,7 +25,8 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from jsonschema import Draft7Validator, FormatChecker
 
-from exp_adapter import ConformanceError, canonical, parse_time, verify_signature
+from canonical_json import canonical_json_bytes, signed_payload_bytes
+from exp_adapter import ConformanceError, parse_time, verify_signature
 
 
 FEDERATION_PATHS = {
@@ -44,10 +45,6 @@ def federation_operation(path: str) -> str | None:
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
-
-
-def unsigned(value: dict[str, Any], signature_field: str) -> dict[str, Any]:
-    return {key: entry for key, entry in value.items() if key != signature_field}
 
 
 class NodeError(Exception):
@@ -171,7 +168,7 @@ class ExpHttpNode:
         descriptor = self.fetch_descriptor(anchor["descriptorEndpoint"])
         try:
             key = self.verify_descriptor(descriptor, anchor, required["keyId"], operation, now)
-            payload = canonical({
+            payload = canonical_json_bytes({
                 "method": method.upper(), "path": path, "body": body, "nodeId": required["nodeId"],
                 "nonce": required["nonce"], "signedAt": required["signedAt"],
             })
@@ -213,12 +210,19 @@ class ExpHttpNode:
                     or transition["nextRootKeyId"] != signature["keyId"] \
                     or not (parse_time(transition["effectiveAt"]) <= now < parse_time(transition["expiresAt"])):
                 raise ConformanceError("INVALID_ROOT_TRANSITION")
-            transition_payload = canonical({key: value for key, value in transition.items()
-                                            if key not in {"previousRootSignature", "nextRootSignature"}})
+            transition_payload = signed_payload_bytes(
+                transition,
+                {"previousRootSignature", "nextRootSignature"},
+            )
             verify_signature(transition_payload, anchor["rootPublicKeyPem"], transition["previousRootSignature"]["signature"], "INVALID_ROOT_TRANSITION")
             verify_signature(transition_payload, transition["nextRootPublicKeyPem"], transition["nextRootSignature"]["signature"], "INVALID_ROOT_TRANSITION")
             signing_root = transition["nextRootPublicKeyPem"]
-        verify_signature(canonical(unsigned(descriptor, "descriptorSignature")), signing_root, signature["signature"], "INVALID_DESCRIPTOR_SIGNATURE")
+        verify_signature(
+            signed_payload_bytes(descriptor, {"descriptorSignature"}),
+            signing_root,
+            signature["signature"],
+            "INVALID_DESCRIPTOR_SIGNATURE",
+        )
         grants = [grant for grant in descriptor.get("authorityGrants", []) if grant["subjectNodeId"] == descriptor["nodeId"]
                   and grant["issuerEntityId"] == descriptor["operatorEntityId"] and operation in grant["operations"]
                   and grant["state"] == "active" and "revokedAt" not in grant
@@ -234,7 +238,14 @@ class ExpHttpNode:
 
     def sign_headers(self, path: str, body: dict[str, Any]) -> dict[str, str]:
         nonce, signed_at = str(uuid.uuid4()), utc_now()
-        payload = canonical({"method": "POST", "path": path, "body": body, "nodeId": self.configuration["nodeId"], "nonce": nonce, "signedAt": signed_at})
+        payload = canonical_json_bytes({
+            "method": "POST",
+            "path": path,
+            "body": body,
+            "nodeId": self.configuration["nodeId"],
+            "nonce": nonce,
+            "signedAt": signed_at,
+        })
         signature = self.private_key.sign(payload)
         import base64
         encoded = base64.urlsafe_b64encode(signature).decode("ascii").rstrip("=")
@@ -342,7 +353,12 @@ class ExpHttpNode:
         if parse_time(query["expiresAt"]) <= datetime.now(timezone.utc):
             raise NodeError(401, "QUERY_EXPIRED", "The discovery query is expired.")
         try:
-            verify_signature(canonical(unsigned(query, "requestSignature")), key, query["requestSignature"]["signature"], "INVALID_QUERY_SIGNATURE")
+            verify_signature(
+                signed_payload_bytes(query, {"requestSignature"}),
+                key,
+                query["requestSignature"]["signature"],
+                "INVALID_QUERY_SIGNATURE",
+            )
         except ConformanceError as error:
             raise NodeError(401, error.code, "The discovery query signature was rejected.") from None
         snapshot = self.store.read(); registration = snapshot["record"]["registration"]

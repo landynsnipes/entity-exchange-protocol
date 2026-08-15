@@ -1,0 +1,106 @@
+{
+  "$ref": "#/definitions/hospitality-service-offer",
+  "definitions": {
+    "hospitality-service-offer": {
+      "type": "object",
+      "properties": {
+        "profileVersion": {
+          "type": "string",
+          "const": "0.1.0-draft.1"
+        },
+        "profileId": {
+          "type": "string",
+          "const": "org.entity-exchange.profile.hospitality"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "providerEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "serviceKind": {
+          "type": "string",
+          "enum": [
+            "venue",
+            "seating_option",
+            "menu_item",
+            "hospitality_service"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "minItems": 1,
+          "maxItems": 50
+        },
+        "supportedNamespaces": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "hospitality.seating.preference",
+              "hospitality.food.preference",
+              "hospitality.food.exclusion",
+              "hospitality.allergy.constraints"
+            ]
+          },
+          "minItems": 1
+        },
+        "endpoint": {
+          "type": "string",
+          "format": "uri"
+        },
+        "containsIdentity": {
+          "type": "boolean",
+          "const": false
+        },
+        "containsRawHealthData": {
+          "type": "boolean",
+          "const": false
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "profileVersion",
+        "profileId",
+        "id",
+        "providerEntityId",
+        "serviceKind",
+        "title",
+        "purpose",
+        "capabilities",
+        "supportedNamespaces",
+        "endpoint",
+        "containsIdentity",
+        "containsRawHealthData",
+        "createdAt",
+        "expiresAt"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

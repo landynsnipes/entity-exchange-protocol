@@ -2,17 +2,23 @@
   "profileVersion": "exp-wallet-platform-conformance-0.1.0-draft.1",
   "requiredCases": [
     "canonical-signature-valid",
+    "raw-public-key-is-32-bytes",
+    "algorithm-identifier-is-ed25519",
+    "spki-is-not-labeled-raw",
     "tampered-signature-rejected",
     "unpinned-requester-rejected",
     "external-http-rejected",
     "request-timeout-bounded",
+    "caller-cancellation-bounded",
+    "response-headers-preserved",
     "callback-origin-mismatch-rejected",
     "approval-scope-escalation-rejected",
     "unapproved-attribute-rejected",
     "raw-context-rejected",
     "expired-consent-rejected",
     "presentation-replay-rejected",
-    "private-key-non-exportable-or-platform-protected"
+    "private-key-non-exportable-or-platform-protected",
+    "existing-non-ed25519-alias-rejected"
   ],
   "claimRequirements": {
     "implementationName": "required",

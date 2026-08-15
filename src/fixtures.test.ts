@@ -7,6 +7,7 @@ import { catalogRegistrationSchema, signedCatalogDiscoveryQuerySchema } from "./
 import { commerceIntentSchema, productOfferSchema } from "./commerce.js";
 import { intentProjectionSchema } from "./foundation.js";
 import { standingMatchNotificationSchema } from "./standing.js";
+import { hospitalityIntentSchema, hospitalityServiceOfferSchema } from "./hospitality.js";
 
 const examplesRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../examples");
 
@@ -19,6 +20,13 @@ describe("public conformance fixtures", () => {
   it("accepts the reciprocal Commerce Profile examples", async () => {
     expect(commerceIntentSchema.parse(await fixture("commerce/consumer-intent.valid.json")).direction).toBe("seek");
     expect(productOfferSchema.parse(await fixture("commerce/product-offer.valid.json")).availability).toBe("available");
+  });
+
+  it("accepts the additive Hospitality Profile examples", async () => {
+    expect(hospitalityIntentSchema.parse(await fixture("hospitality/intent.valid.json")).profileId)
+      .toBe("org.entity-exchange.profile.hospitality");
+    expect(hospitalityServiceOfferSchema.parse(await fixture("hospitality/service-offer.valid.json")).serviceKind)
+      .toBe("venue");
   });
 
   it("rejects an intent projection that includes raw conversation content", async () => {

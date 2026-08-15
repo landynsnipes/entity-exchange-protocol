@@ -5,6 +5,7 @@ import argparse
 import base64
 import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -12,17 +13,20 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from jsonschema import Draft7Validator, FormatChecker
 
+from canonical_json import signed_payload_bytes
+
 
 class WalletError(Exception):
     """Expected wallet policy rejection."""
 
 
-def canonical(value: object) -> bytes:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+def parse_time(value: str) -> datetime:
+    return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
 
 
-def without_signature(value: dict[str, Any]) -> dict[str, Any]:
-    return {key: item for key, item in value.items() if key != "signature"}
+def require_unique(values: list[str], code: str) -> None:
+    if len(set(values)) != len(values):
+        raise WalletError(code)
 
 
 def validator(schema_directory: Path, name: str) -> Draft7Validator:
@@ -40,10 +44,17 @@ def build_presentation(config: dict[str, Any], schema_directory: Path) -> dict[s
     request = config["request"]
     view = config["view"]
     validate(request, validator(schema_directory, "wallet-connect-request.schema.json"), "INVALID_REQUEST")
+    now = parse_time(config["now"])
+    if parse_time(request["issuedAt"]) >= parse_time(request["expiresAt"]) or parse_time(request["expiresAt"]) <= now:
+        raise WalletError("INVALID_REQUEST_TIMESTAMP")
+    require_unique(request["requestedScopes"], "DUPLICATE_SCOPE")
+    require_unique(request["requestedOperations"], "DUPLICATE_OPERATION")
     requested_scopes = set(request["requestedScopes"])
     requested_operations = set(request["requestedOperations"])
     approved_scopes = config["approvedScopes"]
     approved_operations = config["approvedOperations"]
+    require_unique(approved_scopes, "DUPLICATE_SCOPE")
+    require_unique(approved_operations, "DUPLICATE_OPERATION")
     if not set(approved_scopes).issubset(requested_scopes):
         raise WalletError("APPROVAL_EXCEEDS_REQUEST")
     if not set(approved_operations).issubset(requested_operations):
@@ -54,6 +65,10 @@ def build_presentation(config: dict[str, Any], schema_directory: Path) -> dict[s
             raise WalletError("VIEW_EXCEEDS_APPROVAL")
     if view["entityId"] != config["principalEntityId"] or view["purpose"] != request["purpose"]:
         raise WalletError("VIEW_BINDING_MISMATCH")
+    if parse_time(view["createdAt"]) >= parse_time(view["expiresAt"]) or parse_time(view["expiresAt"]) > parse_time(request["expiresAt"]):
+        raise WalletError("INVALID_PRESENTATION_TIMESTAMP")
+    if parse_time(config["now"]) > parse_time(config["expiresAt"]) or parse_time(config["expiresAt"]) > parse_time(request["expiresAt"]):
+        raise WalletError("INVALID_PRESENTATION_TIMESTAMP")
     presentation = {
         "profileVersion": "0.1.0-draft.1",
         "id": config["presentationId"],
@@ -83,7 +98,7 @@ def build_presentation(config: dict[str, Any], schema_directory: Path) -> dict[s
     private_key = serialization.load_pem_private_key(config["privateKeyPem"].encode("utf-8"), password=None)
     if not isinstance(private_key, Ed25519PrivateKey):
         raise WalletError("UNSUPPORTED_KEY")
-    signature = private_key.sign(canonical(without_signature(presentation)))
+    signature = private_key.sign(signed_payload_bytes(presentation, {"signature"}))
     presentation["signature"]["value"] = base64.urlsafe_b64encode(signature).rstrip(b"=").decode("ascii")
     validate(presentation, validator(schema_directory, "wallet-presentation.schema.json"), "INVALID_PRESENTATION")
     return presentation
