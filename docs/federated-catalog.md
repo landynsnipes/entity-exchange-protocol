@@ -23,8 +23,8 @@ conforms to the public contracts.
 
 ## Trust boundary
 
-The public TypeScript contracts are defined in [`src/catalog.ts`](../src/catalog.ts). An in-memory
-catalog implementation may verify signatures through an injected trust interface, permit exact
+The public catalog records are the committed `schemas/catalog-*.schema.json` files. An
+implementation may verify signatures through its own trust interface, permit exact
 idempotent retries, reject changed registrations and signature reuse, enforce discovery
 authorization, filter withdrawn or expired records, prevent peer loops, and bound federation depth
 and result count. The signed discovery layer adds expiring requests, nonce replay protection,

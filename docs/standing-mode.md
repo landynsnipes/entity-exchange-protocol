@@ -31,9 +31,9 @@ agent runtimes:
 - Models, views, records, authorizations, and inboxes belong to their respective nodes.
 - Catalogs exchange signed references and bounded discovery responses, not source models.
 - Peer relationships are explicit and hop-limited.
-- The coordinator in [`src/standing.ts`](../src/standing.ts) is a reference event orchestrator, not a required central
-  network service. Its interfaces can be distributed across HTTP, MCP, queues, or local agent
-  runtimes without changing the protocol contracts.
+- Any coordinator is a local implementation choice, not a required central network service.
+  The same records can move across HTTP, MCP, queues, or local agent runtimes without changing
+  the protocol contracts.
 
 ## Safety invariants
 

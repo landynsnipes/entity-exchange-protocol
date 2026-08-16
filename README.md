@@ -77,7 +77,12 @@ npm run browser:serve
 
 Open `/examples/browser-wallet/index.html`. The page generates a non-exportable WebCrypto key, shows explicit scope approval, and creates a signed read-only presentation.
 
-Implementation path for TypeScript, Python, Swift, and Kotlin: [`docs/implementing-exp.md`](docs/implementing-exp.md). Direct-connect handshake: [`docs/connect-with-exp.md`](docs/connect-with-exp.md).
+Clean-room path (specification, schemas, vectors, adapter contract, runner):
+[`docs/implementing-exp.md`](docs/implementing-exp.md) and
+[`docs/conformance-adapter.md`](docs/conformance-adapter.md).
+Black-box implementer audit: [`docs/implementer-audit.md`](docs/implementer-audit.md).
+Direct-connect handshake: [`docs/connect-with-exp.md`](docs/connect-with-exp.md).
+TypeScript, Python, Swift, and Kotlin remain optional reference implementations.
 
 ## What a passing gate proves
 

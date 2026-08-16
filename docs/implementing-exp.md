@@ -1,40 +1,50 @@
 # Implementing EXP
 
-This guide describes the public interoperability boundary for EXP `0.1.0`. An implementation
-should consume the committed schemas, canonical-signing vectors, and conformance runner. It does
-not need a particular database, AI framework, cloud, or always-online service.
+This guide is the clean-room path for EXP `0.1.0`. An independent engineer should be able to
+implement from these artifacts only:
+
+1. [`SPECIFICATION.md`](../SPECIFICATION.md)
+2. [`schemas/`](../schemas/) and `schemas/manifest.json`
+3. [`test-vectors/`](../test-vectors/)
+4. this page and [`conformance-adapter.md`](conformance-adapter.md)
+5. [`conformance/run.mjs`](../conformance/run.mjs)
+
+TypeScript under `src/` and Python under `implementations/python/` are reference
+implementations. They are not the contract. Do not treat them as required reading.
+
+The work does not need a particular database, AI framework, cloud, or always-online service.
 
 ## Shared implementation rules
 
 1. Validate incoming JSON against the relevant file in [`schemas/`](../schemas/).
-2. Apply semantic validation, including timestamp ordering, uniqueness, binding, and lifetime rules.
-3. Enforce the resource limits documented in [`SPECIFICATION.md`](../SPECIFICATION.md) before
-   recursive parsing or signing.
-4. Remove the normative signature-envelope fields and serialize the remaining value with the
-   RFC 8785-JCS profile before Ed25519 signing or verification.
-5. Negotiate an exact supported protocol/profile version; do not infer support from a matching
-   major version.
-6. Run the conformance suite before claiming interoperability. A passing report covers only the
-   named cases and is not certification.
+2. Apply the semantic rules in the specification, including timestamp ordering, uniqueness,
+   binding, and lifetime. Schema acceptance is not sufficient.
+3. Enforce the resource limits in the specification before recursive parsing or signing.
+4. Remove the listed signature-envelope fields and serialize the remaining value with
+   RFC 8785-JCS before Ed25519 / EdDSA verification. Use
+   `test-vectors/canonical-signing.json` as the byte-level fixture.
+5. Negotiate an exact shared version per family. Select the highest version both sides name.
+   Do not infer support from a matching major version.
+6. Implement the JSONL adapter in [`conformance-adapter.md`](conformance-adapter.md).
+7. Run the conformance suite. A passing report covers only the named cases and is not
+   certification. The default run includes `transport:http` cases.
 
 ## Core and carrier bindings
 
-EXP core behavior is defined independently of the delivery mechanism. The
-`@exp/protocol/transport` export provides adapter contracts for opaque payload bytes, message
-identity, sender/recipient binding, nonces, expiry, replay storage, trust resolution, and
-normalized responses. The `@exp/protocol/signing` export provides shared signature metadata and
-record-specific signed-byte construction.
-
-An HTTP, MCP, NFC/QR, WebSocket, queue, or local-IPC binding may encode those contracts in its own
-carrier format. Carrier metadata must not become a security property unless the binding promotes it
-into the signed EXP input. MCP can expose EXP requests and presentations to an agent, but it does
-not replace EXP identity, consent, signing, or revocation.
+EXP core records are independent of the delivery carrier. HTTP, MCP, NFC/QR, WebSocket, a
+queue, or local IPC may carry the same records. Carrier metadata is not a security property
+unless the binding promotes it into the signed EXP input.
 
 The conformance report labels transport-neutral cases as `core`. HTTP-shaped method/path and
-HTTPS-policy cases are labeled `transport:http`; future bindings should add their own profile
-without changing the core vectors.
+HTTPS-policy cases are labeled `transport:http`. Those HTTP cases still run in the default
+52-case command. They do not change the v0.1 wire records.
 
-## TypeScript
+See [`transport-bindings.md`](transport-bindings.md).
+
+## Optional TypeScript reference
+
+The remainder of this page is convenience for people who already chose a reference
+implementation. Skip it for a clean-room client.
 
 Install the repository dependencies and run the public checks:
 
@@ -109,12 +119,10 @@ creates a signed read-only presentation. It intentionally has no server-side cus
 
 ## Hospitality profile
 
-The additive [`@exp/protocol/hospitality`](../src/hospitality.ts) profile defines venue/service
-intent and offer records. It reuses generic Entity Views and scopes rather than changing v0.1
-wallet records. Hospitality views should use namespace-scoped attributes such as
-`hospitality.seating.preference` and `hospitality.food.preference`; allergy constraints must be
-sealed or otherwise handled under an explicit safety policy. Recommendations must never infer that
-an item is allergy-safe.
+The additive Hospitality Profile is defined in `SPECIFICATION.md` and
+`schemas/hospitality-*.schema.json`. It reuses generic Entity Views and scopes. Allergy
+constraints must be sealed or handled under an explicit safety policy. Recommendations must
+never infer that an item is allergy-safe.
 
 ## Swift
 

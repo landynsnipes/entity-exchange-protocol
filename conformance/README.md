@@ -25,6 +25,14 @@ contain `id`, `command`, and `input`; responses contain the same `id`, `ok`, and
 each case labeled as `core` or an optional transport profile such as `transport:http`, and
 returns nonzero when any case fails.
 
+Command catalog, input shapes, stateful standing order, and failure diagnosis:
+[`docs/conformance-adapter.md`](../docs/conformance-adapter.md).
+Error codes: [`SPECIFICATION.md`](../SPECIFICATION.md).
+Do not read `src/` or the Python adapter to learn the contract.
+
+The default 52-case run includes `transport:http`. Standing cases share one process store;
+a failure early in that sequence will cascade.
+
 The `schemas/` directory is the canonical published schema set. Run `npm run schema:check` to
 regenerate schemas into a temporary directory and compare every committed artifact and manifest
 hash before running conformance.

@@ -21,8 +21,7 @@ flowchart TD
 
 ## Core boundary
 
-The [`@exp/protocol/transport`](../src/transport.ts) contracts describe an adapter-level request
-with:
+The transport binding describes an adapter-level request with:
 
 - message and operation identity;
 - sender and optional recipient binding;

@@ -35,19 +35,20 @@ fields may be introduced in later minor drafts only after conformance fixtures a
 
 This release publishes an explicit capability set in `schemas/manifest.json`. Implementations
 MUST negotiate an exact shared version from the relevant family; they MUST NOT infer support for
-an unlisted minor or major version. The TypeScript compatibility helpers expose the same policy
-through `EXP_SUPPORTED_VERSIONS` and `negotiateVersion`.
+an unlisted minor or major version. For each family (protocol, profile, foundation, catalog,
+standing, trust, wallet, commerce, relationship, hospitality), both sides offer an explicit list.
+The selected version is the highest version string that appears in both lists. If the
+intersection is empty, negotiation MUST fail. Matching major numbers alone are not enough.
 
-The committed `schemas/` directory is the machine-readable source distributed with the public
-package. Its manifest includes a hash for every schema so release automation can detect drift
-between Zod contracts and published artifacts. A schema change requires regenerated artifacts,
-updated conformance fixtures, and an explicit compatibility review.
+The committed `schemas/` directory is the machine-readable source of field shape. Its manifest
+includes a SHA-256 hash for every schema. A schema change requires regenerated artifacts,
+updated conformance fixtures, and an explicit compatibility review. Language-specific parsers
+are reference material; they are not the normative contract.
 
 At the external message boundary, implementations SHOULD validate the raw payload against the
 published JSON Schema before application-level parsing or signature verification. Current v0.1
-JSON Schemas reject undeclared fields. Existing TypeScript Zod parsers retain their established
-behavior for compatibility, including stripping unknown fields in non-strict object parsers;
-implementations MUST NOT treat stripped fields as part of a signed or verified payload.
+JSON Schemas reject undeclared fields. Implementations MUST NOT treat unknown or stripped fields
+as part of a signed or verified payload.
 
 ## Canonical signing
 
@@ -89,10 +90,11 @@ EXP core records are independent of their delivery carrier. A binding MAY carry 
 HTTP, MCP, NFC/QR rendezvous, WebSocket, a queue, local IPC, or another mechanism. The carrier does
 not become part of the core protocol merely because it is convenient for one implementation.
 
-The public `@exp/protocol/transport` contracts describe adapter-level delivery metadata: message and
-operation identity, sender and recipient binding, nonce, lifecycle timestamps, opaque payload bytes,
-replay handling, trust resolution, deadlines, and normalized responses. Carrier metadata MUST remain
-separate from signed EXP input unless the binding explicitly promotes it into that input.
+Adapter-level delivery metadata includes message and operation identity, sender and recipient
+binding, nonce, lifecycle timestamps, opaque payload bytes, replay handling, trust resolution,
+deadlines, and normalized responses. Carrier metadata MUST remain separate from signed EXP input
+unless the binding explicitly promotes it into that input. Language package paths are optional
+helpers, not the protocol.
 
 Each binding MUST preserve the core authorization properties. It MUST NOT broaden scopes, extend
 expiry, reuse a nonce, or treat local proximity, an MCP tool grant, or a transport URL as a
@@ -144,6 +146,86 @@ limits. Resource failures SHOULD use stable categories:
 JSON Schema expresses field-level and representable collection constraints; cross-field semantic
 rules remain mandatory application validation because Draft 7 cannot express every binding and
 timestamp relationship used by EXP.
+
+The following semantic rules are normative for v0.1 even when a schema would accept the JSON:
+
+- A Consent `subjectEntityId` MUST NOT equal `granteeEntityId`. Reject with `INVALID_BINDING`.
+- A Connection Proposal `initiatorEntityId` MUST NOT equal `counterpartyEntityId`. Reject with
+  `INVALID_BINDING`.
+- Scope arrays (`scopes`, `requestedScopes`, `requestedDisclosureScopes`, `approvedScopes`) MUST
+  contain unique values. Reject duplicates with `DUPLICATE_SCOPE`.
+- Operation arrays on authority grants MUST contain unique values. Reject duplicates with
+  `DUPLICATE_OPERATION`.
+- Timestamp fields used as “not after `now`” (`decidedAt`, `invalidatedAt`, and equivalent
+  decision times) MUST be less than or equal to the supplied `now`. Future values fail closed.
+- Wallet approved scopes and operations MUST be a subset of the request. A wider approval fails
+  with `APPROVAL_EXCEEDS_REQUEST`.
+- A standing decision’s `approvedDisclosureScopes` MUST be a subset of the proposal’s
+  `requestedDisclosureScopes`. A wider set fails with `DISCLOSURE_SCOPE_EXCEEDS_REQUEST`.
+- A `StandingMatchNotification` MUST have `containsIdentity` and `containsSealedValues` equal to
+  `false`. Otherwise reject with `INVALID_NOTIFICATION_SCHEMA`.
+- Dual approval releases only the intersection of independently approved scopes. One approval
+  MUST NOT produce a `DisclosureRelease`.
+- An invalidation MUST bind the existing notification id and proposal id. A mismatched pair
+  fails with `INVALIDATION_BINDING_MISMATCH`.
+- After a `DisclosureRelease` exists, invalidation of that proposal MUST fail with
+  `RELEASE_ALREADY_EXISTS`.
+- After a valid invalidation, new decisions against that proposal MUST fail with
+  `PROPOSAL_INVALIDATED`.
+- A second decision by the same actor on the same proposal MUST fail with
+  `DUPLICATE_ACTOR_DECISION`.
+- `actorSide` MUST match the actor’s role on the proposal. Otherwise
+  `DECISION_ACTOR_MISMATCH`.
+- A proposal whose `expiresAt` is at or before `now` MUST fail with `PROPOSAL_EXPIRED`.
+- Replaying an identical proposal/notification pair is idempotent (`accepted` and `duplicate`).
+  Changing the notification while keeping the proposal id MUST fail with
+  `NOTIFICATION_CONFLICT`.
+
+## Conformance error codes
+
+Implementations that speak the public JSONL adapter MUST use these codes exactly. Nearby
+synonyms are not interchangeable.
+
+| Code | When |
+| --- | --- |
+| `INVALID_BINDING` | Subject equals grantee, or both proposal parties are the same entity |
+| `DUPLICATE_SCOPE` | A scope list repeats a value |
+| `DUPLICATE_OPERATION` | An operation list repeats a value |
+| `INVALID_DESCRIPTOR_SIGNATURE` | Descriptor bytes do not match the pinned root signature |
+| `INVALID_DESCRIPTOR_TIMESTAMP` | Descriptor signature time does not match the descriptor’s declared update time |
+| `INVALID_ROOT_TRANSITION` | Replacement root or transition signatures/key ids are not acceptable |
+| `DESCRIPTOR_ORIGIN_MISMATCH` | Descriptor endpoint origin/scheme does not match the pinned origin |
+| `OPERATION_NOT_ALLOWED` | Local policy does not allow the requested operation |
+| `NO_ACTIVE_GRANT` | Authority grant is missing, revoked, or expired |
+| `NONCE_REPLAY` | Transport nonce was already consumed |
+| `INVALID_TRANSPORT_SIGNATURE` | HTTP-shaped signed object does not verify |
+| `STALE_TRANSPORT_SIGNATURE` | Transport `signedAt` is outside the accepted freshness window |
+| `INSECURE_TRANSPORT` | External HTTP is used without an explicit loopback test mode |
+| `APPROVAL_EXCEEDS_REQUEST` | Wallet approval widens requested scopes or operations |
+| `NOTIFICATION_CONFLICT` | Same proposal id with a conflicting notification body |
+| `INVALID_NOTIFICATION_SCHEMA` | Notification carries identity or sealed values |
+| `PROPOSAL_EXPIRED` | Proposal is at or past expiry |
+| `DUPLICATE_ACTOR_DECISION` | The same actor already decided |
+| `DECISION_ACTOR_MISMATCH` | `actorSide` does not match the actor on the proposal |
+| `RELEASE_ALREADY_EXISTS` | Invalidation after a disclosure release |
+| `DECISION_TIMESTAMP_INVALID` | Decision time is after `now` |
+| `DISCLOSURE_SCOPE_EXCEEDS_REQUEST` | Decision scopes are not a subset of the request |
+| `INVALIDATION_BINDING_MISMATCH` | Invalidation notification/proposal pair is wrong |
+| `INVALIDATION_TIMESTAMP_INVALID` | Invalidation time is after `now` |
+| `PROPOSAL_INVALIDATED` | Decision against an invalidated proposal |
+| `RESOURCE_PAYLOAD_TOO_LARGE` | Payload exceeds 1 MiB |
+| `RESOURCE_NESTING_TOO_DEEP` | Nesting exceeds 16 levels |
+| `RESOURCE_ARRAY_TOO_LARGE` | Array exceeds 100 items |
+| `RESOURCE_STRING_TOO_LARGE` | String exceeds 4,096 UTF-16 code units |
+| `RESOURCE_OBJECT_TOO_LARGE` | Object exceeds 100 properties |
+
+The transport freshness window used by `STALE_TRANSPORT_SIGNATURE` is **not yet a published
+number**. The public stale vector is more than 24 hours old relative to `now`. An implementer
+MUST treat that vector as the interoperability fixture and MUST NOT invent a different window
+until a later spec revision states an exact duration.
+
+The JSONL commands, input shapes, and stateful standing order are defined in
+[`docs/conformance-adapter.md`](docs/conformance-adapter.md).
 
 ## Hospitality profile
 
