@@ -90,6 +90,7 @@ TypeScript, Python, Swift, and Kotlin remain optional reference implementations.
 | --- | --- | --- |
 | `npm run validate` | TypeScript contract, unit tests, schema hashes match committed `schemas/` | Production certification |
 | `npm run conformance` | 52 named cases in `exp-conformance-0.5.0` | Every device, every binding, or live federation |
+| `npm run conformance -- --profile core` | Transport-neutral subset of that suite | HTTP binding or full-suite conformance |
 | `npm run test:python` | Independent adapter agrees with published schemas | Interoperability with an untested third implementation |
 | Browser wallet | Scoped consent + WebCrypto signing in a page | A hosted wallet product |
 | Swift / Kotlin sources | Reviewed native adapter contracts | Platform conformance (needs native toolchains) |

@@ -26,8 +26,17 @@ The work does not need a particular database, AI framework, cloud, or always-onl
 5. Negotiate an exact shared version per family. Select the highest version both sides name.
    Do not infer support from a matching major version.
 6. Implement the JSONL adapter in [`conformance-adapter.md`](conformance-adapter.md).
-7. Run the conformance suite. A passing report covers only the named cases and is not
-   certification. The default run includes `transport:http` cases.
+7. Start with `core`. Implement transport bindings only if you need them. Passing `core`
+   demonstrates transport-neutral EXP conformance, not HTTP binding conformance or
+   full-suite conformance.
+
+```bash
+npm run conformance -- --profile core
+```
+
+The default `npm run conformance` command still runs all 52 cases, including
+`transport:http`. A passing report covers only the named selected cases and is not
+certification.
 
 ## Core and carrier bindings
 

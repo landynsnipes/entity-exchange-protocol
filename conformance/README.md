@@ -30,8 +30,21 @@ Command catalog, input shapes, stateful standing order, and failure diagnosis:
 Error codes: [`SPECIFICATION.md`](../SPECIFICATION.md).
 Do not read `src/` or the Python adapter to learn the contract.
 
-The default 52-case run includes `transport:http`. Standing cases share one process store;
-a failure early in that sequence will cascade.
+The default 52-case run includes `transport:http` and is unchanged. Select a
+profile without changing those case expectations:
+
+```bash
+npm run conformance
+npm run conformance -- --profile core
+npm run conformance -- --profile http
+```
+
+Start with `core`. Passing `core` is transport-neutral EXP conformance, not
+HTTP binding or full-suite conformance. The runner reports the selected
+profile, selected pass count, and how many suite cases were not selected.
+
+Standing cases share one process store; a failure early in that sequence will
+cascade. `verify_transport` staleness is `|now − signedAt| > 300` seconds.
 
 The `schemas/` directory is the canonical published schema set. Run `npm run schema:check` to
 regenerate schemas into a temporary directory and compare every committed artifact and manifest

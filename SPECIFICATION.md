@@ -199,7 +199,7 @@ synonyms are not interchangeable.
 | `NO_ACTIVE_GRANT` | Authority grant is missing, revoked, or expired |
 | `NONCE_REPLAY` | Transport nonce was already consumed |
 | `INVALID_TRANSPORT_SIGNATURE` | HTTP-shaped signed object does not verify |
-| `STALE_TRANSPORT_SIGNATURE` | Transport `signedAt` is outside the accepted freshness window |
+| `STALE_TRANSPORT_SIGNATURE` | `|now − signedAt| > 300` seconds |
 | `INSECURE_TRANSPORT` | External HTTP is used without an explicit loopback test mode |
 | `APPROVAL_EXCEEDS_REQUEST` | Wallet approval widens requested scopes or operations |
 | `NOTIFICATION_CONFLICT` | Same proposal id with a conflicting notification body |
@@ -219,10 +219,17 @@ synonyms are not interchangeable.
 | `RESOURCE_STRING_TOO_LARGE` | String exceeds 4,096 UTF-16 code units |
 | `RESOURCE_OBJECT_TOO_LARGE` | Object exceeds 100 properties |
 
-The transport freshness window used by `STALE_TRANSPORT_SIGNATURE` is **not yet a published
-number**. The public stale vector is more than 24 hours old relative to `now`. An implementer
-MUST treat that vector as the interoperability fixture and MUST NOT invent a different window
-until a later spec revision states an exact duration.
+A transport signature is stale when the absolute difference between the supplied `now` and
+`signedAt` is greater than **300 seconds**. Future-dated signatures use the same bound. This is
+the existing `verify_transport` and HTTP federation-node rule. The runner does not compute a
+second window; the public `transport-stale` fixture is 86,402 seconds old and therefore MUST
+fail. TypeScript `src/transport.ts` defines adapter interfaces only and does not contain a
+conflicting constant.
+
+Default conformance (`npm run conformance`) still runs the full suite. `--profile core` selects
+only transport-neutral cases. `--profile http` selects `verify_transport` and `transport_policy`.
+Passing `core` is transport-neutral EXP conformance. It is not HTTP binding conformance and not
+full-suite conformance.
 
 The JSONL commands, input shapes, and stateful standing order are defined in
 [`docs/conformance-adapter.md`](docs/conformance-adapter.md).

@@ -91,8 +91,8 @@ network location does not remove the need for signatures, replay protection, con
 ## Conformance levels
 
 - `core`: canonical bytes, signatures, schemas, semantic rules, wallet policy, trust lifecycle,
-  and standing state behavior.
-- `transport:http`: HTTP-shaped signed delivery and HTTPS policy.
+  and standing state behavior. Selected with `--profile core`.
+- `transport:http`: HTTP-shaped signed delivery and HTTPS policy. Selected with `--profile http`.
 - Future profiles such as `transport:mcp` or `transport:nfc`: binding-specific encoding and
   lifecycle behavior, added without changing core vectors.
 

@@ -95,10 +95,10 @@ Not changed:
 
 ## Residual after the doc fixes
 
-A5 and A8 remain. A5 needs the actual max-age written as a number once
-it is taken from a measured constant, not guessed. A8 needs an explicit
-core-only runner profile if we want a transport-neutral passing report;
-the default 52-case command is left unchanged.
+A5 is closed as **300 seconds** of absolute skew, matching
+`exp_adapter.py` and `exp_http_node.py`. The runner fixture agrees. A8
+is closed as `--profile core` / `--profile http` with the default 52-case
+command unchanged.
 
 ## External adoption
 

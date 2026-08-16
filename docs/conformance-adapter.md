@@ -25,8 +25,28 @@ The runner times out a request after 3 seconds. It compares `ok`,
 `errorCode`, and selected `result` fields. Failed cases print `expected`
 and `actual` without payloads.
 
-Default invocation runs **all** cases, including `transport:http`. A
-passing 52-case report is not a core-only report.
+Default invocation runs **all** cases, including `transport:http`. That
+52-case command is unchanged.
+
+```bash
+npm run conformance
+# Profile: all — existing 52-case suite
+
+npm run conformance -- --profile core
+# Transport-neutral cases only
+
+npm run conformance -- --profile http
+# verify_transport and transport_policy only
+```
+
+Start with `core`. Implement transport bindings only if you need them.
+Passing `core` demonstrates transport-neutral EXP conformance, not HTTP
+binding conformance or full-suite conformance. The runner prints the
+selected profile, `Passed: X/X`, and `Skipped/not selected: Y` so a
+reduced run cannot look accidentally complete.
+
+`verify_transport` rejects a signature when `|now − signedAt| > 300`
+seconds.
 
 ## Commands
 

@@ -36,6 +36,7 @@ jobs:
           python -m pip install -r implementations/python/requirements.txt
           npm run test:python
           npm run conformance
+          npm run conformance -- --profile core
       - run: npm install --prefix adapters/mcp
       - run: npm run build:mcp
       - run: npm run test:mcp

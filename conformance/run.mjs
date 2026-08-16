@@ -235,8 +235,35 @@ class Candidate {
   close() { this.process.stdin.end(); this.process.kill("SIGTERM"); }
 }
 
+function parseRunnerArgv(argv) {
+  let selectedProfile = "all";
+  const command = [];
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index];
+    if (argument === "--profile") {
+      selectedProfile = argv[index + 1];
+      index += 1;
+      continue;
+    }
+    if (argument.startsWith("--profile=")) {
+      selectedProfile = argument.slice("--profile=".length);
+      continue;
+    }
+    command.push(argument);
+  }
+  const aliases = { all: "all", core: "core", http: "transport:http", "transport:http": "transport:http" };
+  if (!Object.hasOwn(aliases, selectedProfile)) {
+    throw new Error("Unknown conformance profile. Use all, core, or http.");
+  }
+  return { selectedProfile: aliases[selectedProfile], command };
+}
+
+function caseProfile(command) {
+  return ["verify_transport", "transport_policy"].includes(command) ? "transport:http" : "core";
+}
+
 async function main() {
-  const command = process.argv.slice(2);
+  const { selectedProfile, command } = parseRunnerArgv(process.argv.slice(2));
   if (command.length === 0) throw new Error("candidate command is required");
   const signingVectors = JSON.parse(readFileSync(new URL("../test-vectors/canonical-signing.json", import.meta.url), "utf8"));
   const coreVectors = JSON.parse(readFileSync(new URL("../test-vectors/core-conformance.json", import.meta.url), "utf8"));
@@ -326,27 +353,40 @@ async function main() {
   }
   const candidate = new Candidate(command);
   const results = [];
+  const skippedCases = [];
   try {
     for (const testCase of cases) {
+      const profile = testCase.profile ?? caseProfile(testCase.command);
+      if (selectedProfile !== "all" && profile !== selectedProfile) {
+        skippedCases.push({ name: testCase.name, profile });
+        continue;
+      }
       const response = await candidate.request(testCase.command, testCase.input);
       const passed = response.ok === testCase.expected.ok
         && (testCase.expected.errorCode === undefined || response.errorCode === testCase.expected.errorCode)
         && (testCase.validate === undefined || testCase.validate(response.result));
-      const profile = testCase.profile ?? (["verify_transport", "transport_policy"].includes(testCase.command) ? "transport:http" : "core");
       results.push({ name: testCase.name, profile, passed, ...(passed ? {} : { expected: testCase.expected, actual: { ok: response.ok, errorCode: response.errorCode } }) });
     }
   } finally { candidate.close(); }
+  const passed = results.filter((item) => item.passed).length;
+  const failed = results.filter((item) => !item.passed).length;
   const report = {
     conformanceVersion: VERSION,
+    selectedProfile,
+    suiteCaseCount: cases.length,
+    selectedCount: results.length,
+    skippedCount: skippedCases.length,
     candidateExecutable: command[0],
     candidateArgumentCount: command.length - 1,
     total: results.length,
-    passed: results.filter((item) => item.passed).length,
-    failed: results.filter((item) => !item.passed).length,
+    passed,
+    failed,
     cases: results,
+    skippedCases,
   };
+  process.stderr.write(`Profile: ${selectedProfile}\nPassed: ${passed}/${results.length}\nSkipped/not selected: ${skippedCases.length}\n`);
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
-  if (report.failed > 0) process.exitCode = 1;
+  if (failed > 0) process.exitCode = 1;
 }
 
 await main();
