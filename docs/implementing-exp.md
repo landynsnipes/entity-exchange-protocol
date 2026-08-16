@@ -39,13 +39,12 @@ without changing the core vectors.
 Install the repository dependencies and run the public checks:
 
 ```bash
-npm ci
-npm test
-npm run typecheck
-npm run build
-npm run schema:check
+npm install
+npm run validate
 npm run conformance
 ```
+
+`npm run validate` runs typecheck, unit tests, schema-hash check, and the TypeScript build. CI on `main` also runs the Python tests, conformance suite, and optional MCP adapter tests.
 
 The root export provides protocol schemas and types. Focused exports include:
 

@@ -28,6 +28,7 @@
   },
   "files": ["dist", "schemas", "examples", "test-vectors", "README.md", "LICENSE"],
   "scripts": {
+    "validate": "npm run typecheck && npm test && npm run schema:check && npm run build",
     "build": "tsc -p tsconfig.json && esbuild dist/platform-browser.js --bundle --format=esm --platform=browser --outfile=dist/platform-browser.bundle.js",
     "browser:serve": "node scripts/serve-browser.mjs",
     "conformance": "node conformance/run.mjs python3 implementations/python/exp_adapter.py --schemas schemas",
