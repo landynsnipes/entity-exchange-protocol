@@ -1,6 +1,6 @@
 # EXP transport bindings
 
-EXP is a protocol for trusted, purpose-bound data exchange—not a requirement to use one network
+EXP is a protocol for trusted, purpose-bound data exchange. It does not require one network
 transport. The core contracts define what is exchanged and how it is authorized; a binding defines
 how a carrier delivers it.
 

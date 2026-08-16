@@ -1,8 +1,8 @@
 # EXP protocol vision
 
-EXP is model-neutral connective infrastructure for an AI-forward world. It allows any authorized
-assistant, application, or gateway to express what an entity seeks or offers and to evaluate a
-specific counterpart using disclosed attributes, explicit constraints, and evidence.
+EXP is a model-neutral protocol. An authorized assistant, application, or gateway can say what an
+entity seeks or offers, then evaluate one counterpart from disclosed attributes, explicit
+constraints, and evidence.
 
 ## The daily-driver AI relationship
 

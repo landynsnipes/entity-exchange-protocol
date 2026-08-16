@@ -40,7 +40,7 @@ agent runtimes:
 - A state event never carries the changed attribute value.
 - A catalog candidate never carries publisher identity or sealed values.
 - A notification never carries counterparty identity or sealed values.
-- Standing authorization permits projection, discovery, evaluation, and notification—not contact,
+- Standing authorization permits projection, discovery, evaluation, and notification. It does not permit contact,
   application, purchase, booking, or identity disclosure.
 - Matching remains pair-specific, purpose-specific, deterministic, and versioned.
 - Identity and contact scopes are released only by intersecting two independent approvals.

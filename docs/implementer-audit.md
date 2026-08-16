@@ -3,7 +3,7 @@
 Date: 2026-08-16.
 Protocol: EXP `0.1.0` draft.
 Conformance: `exp-conformance-0.5.0`.
-Method: public contract only —
+Method: public contract only:
 `SPECIFICATION.md` → `schemas/` → `test-vectors/` → implementer docs →
 `conformance/run.mjs`. TypeScript `src/` and `implementations/python/` were
 not used as a cheat sheet.
@@ -81,7 +81,7 @@ Only missing contract, not prettier wording:
 1. Normative semantic rules and error-code table in `SPECIFICATION.md`.
 2. Standing and wallet rules that conformance already enforces.
 3. Version-negotiation algorithm moved from README into the spec.
-4. `docs/conformance-adapter.md` — command catalog, statefulness, and
+4. `docs/conformance-adapter.md`: command catalog, statefulness, and
    diagnosis notes extracted from the public runner.
 5. Implementer guide and related docs no longer require `src/` to start.
 

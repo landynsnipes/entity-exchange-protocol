@@ -2,7 +2,7 @@
 
 [![Validate](https://github.com/landynsnipes/entity-exchange-protocol/actions/workflows/validate.yml/badge.svg)](https://github.com/landynsnipes/entity-exchange-protocol/actions/workflows/validate.yml)
 
-Permissioned, evidence-backed connection between people, organizations, applications, and AI agents — without handing anyone the whole profile, the conversation history, or a standing right to act.
+Permissioned, evidence-backed connection between people, organizations, applications, and AI agents. Nobody receives the whole profile, the conversation history, or a standing right to act.
 
 EXP is a **draft, transport-neutral protocol**. It is not a production runtime, a marketplace, or a claim that a stable npm release exists. The npm package remains `"private": true`.
 
@@ -101,12 +101,12 @@ A passing report is **protocol correctness**, not model-quality evaluation and n
 
 ## Production characteristics (draft)
 
-- **Exact version negotiation** — `negotiateVersion` selects the highest version both sides name. Matching major numbers are not enough.
-- **Canonical signing** — `RFC8785-JCS` over payloads with envelope fields stripped. Shared vectors in `test-vectors/`.
-- **Bounded untrusted input** — 1 MiB payload, 16 nesting levels, 100 items/properties, 4,096 UTF-16 code units per string.
-- **Retry rules** — retry transport, timeout, and deadline-safe `408`/`425`/`429`/`5xx` only. Fresh transport nonce, same logical operation id. Do not retry auth, schema, signature, replay, conflict, cancel, or expiry.
-- **Privacy default** — sensitive fields stay private; claims separate assertion, evidence, and verification.
-- **Model-neutral** — an AI may derive a short-lived Intent Projection. It does not own the principal, consent, or another model’s memory.
+- **Exact version negotiation.** `negotiateVersion` selects the highest version both sides name. Matching major numbers are not enough.
+- **Canonical signing.** `RFC8785-JCS` over payloads with envelope fields stripped. Shared vectors in `test-vectors/`.
+- **Bounded untrusted input.** 1 MiB payload, 16 nesting levels, 100 items/properties, 4,096 UTF-16 code units per string.
+- **Retry rules.** Retry transport, timeout, and deadline-safe `408`/`425`/`429`/`5xx` only. Fresh transport nonce, same logical operation id. Do not retry auth, schema, signature, replay, conflict, cancel, or expiry.
+- **Privacy default.** Sensitive fields stay private. Claims separate assertion, evidence, and verification.
+- **Model-neutral.** An AI may derive a short-lived Intent Projection. It does not own the principal, consent, or another model’s memory.
 
 ## Technical depth
 

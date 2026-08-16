@@ -30,7 +30,7 @@ Default invocation runs **all** cases, including `transport:http`. That
 
 ```bash
 npm run conformance
-# Profile: all — existing 52-case suite
+# Profile: all. Existing 52-case suite.
 
 npm run conformance -- --profile core
 # Transport-neutral cases only

@@ -35,7 +35,7 @@ storage or synchronization provider does not gain protocol ownership of the prin
 
 Business data follows the same rule: an organization can retain its source model in its own systems
 and disclose only an approved Organization, Product, Service, or Opportunity View. Direct exchange is
-therefore reciprocal rather than a mechanism for businesses to collect complete consumer profiles.
+therefore not a mechanism for businesses to collect complete consumer profiles. Direct exchange works in both directions.
 
 ## Relationship to background discovery
 

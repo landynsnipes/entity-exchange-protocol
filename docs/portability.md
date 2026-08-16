@@ -3,7 +3,7 @@
 EXP is a wire protocol and data-contract family, not one operating-system runtime. A conforming
 implementation may be written in any language and run on any platform that can provide the required
 security and networking capabilities. Interoperability is determined by schemas, canonical signed
-messages, authorization, consent, lifecycle behavior, and conformance tests—not by the device brand,
+messages, authorization, consent, lifecycle behavior, and conformance tests, not by the device brand,
 operating system, AI model, or storage provider.
 
 ## Required implementation capabilities
